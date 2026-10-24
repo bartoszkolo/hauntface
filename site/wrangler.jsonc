@@ -1,15 +1,14 @@
 // Cloudflare Workers — static assets only (no worker script).
-// Build first: `sh build.sh`, then `npx wrangler deploy` from this folder.
+// Build first: `bash build.sh`, then `npx wrangler deploy` from this folder.
 {
   "name": "hauntface",
   "compatibility_date": "2026-09-01",
   "assets": {
     "directory": "./dist",
     "html_handling": "auto-trailing-slash"
-  }
-  // Custom domain (not set up yet) — uncomment when hauntface.cc is on Cloudflare:
-  // ,"routes": [
-  //   { "pattern": "hauntface.cc", "custom_domain": true },
-  //   { "pattern": "www.hauntface.cc", "custom_domain": true }
-  // ]
+  },
+  "routes": [
+    { "pattern": "hauntface.com", "custom_domain": true },
+    { "pattern": "www.hauntface.com", "custom_domain": true }
+  ]
 }

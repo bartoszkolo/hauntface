@@ -124,4 +124,4 @@ tools/      serve.py — run in a browser from source
 
 ## License
 
-MIT. Made for the night of 31 October by [bartoszkolo](https://github.com/bartoszkolo), the maker of [Stagelight](https://stagelight.cc).
+MIT. Website: [hauntface.com](https://hauntface.com). Made for the night of 31 October by [bartoszkolo](https://github.com/bartoszkolo), the maker of [Stagelight](https://stagelight.cc).
