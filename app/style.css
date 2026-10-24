@@ -1,0 +1,40 @@
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; cursor: none;
+    font-family: system-ui, sans-serif; color: #ddd; }
+  body.ui { cursor: default; }
+  canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+  #status { position: fixed; left: 12px; bottom: 10px; font: 12px/1.4 monospace; color: #7c7; white-space: pre;
+    pointer-events: none; text-shadow: 0 0 3px #000; z-index: 3; }
+  body.nodebug #status { display: none; }
+  #start { position: fixed; inset: 0; display: grid; place-items: center; z-index: 5; cursor: pointer;
+    background: radial-gradient(ellipse at center, #0000 0%, #000c 70%); }
+  #start div { text-align: center; font: 600 26px Georgia, serif; color: #ff7a2a; letter-spacing: 6px;
+    text-shadow: 0 0 18px #f40; animation: pulse 2.4s ease-in-out infinite; }
+  #start small { display: block; font: 13px system-ui; color: #777; margin-top: 14px; letter-spacing: 0; text-shadow: none; }
+  @keyframes pulse { 50% { opacity: .45; } }
+  #panel { position: fixed; top: 0; right: 0; width: min(440px, 100vw); height: 100vh; overflow: auto; z-index: 4;
+    background: #0d0b0ef2; border-left: 1px solid #2c2430; padding: 16px 18px 40px; display: none; font-size: 14px; box-sizing: border-box; }
+  body.ui #panel { display: block; }
+  #panel h2 { margin: 0 0 4px; font: 600 20px Georgia, serif; color: #ff7a2a; }
+  #panel h3 { margin: 18px 0 2px; font-size: 12px; color: #ff7a2a; text-transform: uppercase; letter-spacing: 1px;
+    border-top: 1px solid #2c2430; padding-top: 12px; }
+  #panel label { display: block; margin: 9px 0 3px; color: #999; font-size: 12px; }
+  #panel label.check { display: flex; gap: 8px; align-items: center; color: #ccc; font-size: 13px; }
+  #panel input:not([type=checkbox]), #panel select, #panel textarea { width: 100%; box-sizing: border-box;
+    background: #000; color: #eee; border: 1px solid #3a3040; border-radius: 4px; padding: 6px 8px; font: inherit; }
+  #panel input[type=range] { padding: 0; }
+  #panel textarea { min-height: 130px; resize: vertical; font-size: 13px; }
+  #panel .row { display: flex; gap: 10px; } #panel .row > * { flex: 1; min-width: 0; }
+  #panel button { margin-top: 14px; background: #ff6a1a; color: #000; border: 0; padding: 9px 14px; border-radius: 4px;
+    font-weight: 700; cursor: pointer; }
+  #panel .fx { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  #panel .fx button { margin: 0; background: #241c28; color: #eee; font-weight: 500; padding: 6px 10px; }
+  #panel .keys { margin-top: 14px; color: #888; font-size: 12px; line-height: 1.8; }
+  #panel kbd { background: #222; border: 1px solid #444; border-radius: 3px; padding: 0 5px; color: #ddd; }
+#panel .note { color: #8a8090; font-size: 12px; margin: 4px 0 0; line-height: 1.5; }
+#panel .actions { display: flex; gap: 8px; }
+#panel button.ghost { background: #241c28; color: #eee; }
+#toast { position: fixed; left: 50%; top: 18px; transform: translateX(-50%); z-index: 6; padding: 8px 16px; border-radius: 6px;
+  background: #000c; color: #ffb27a; font: 14px system-ui; pointer-events: none; opacity: 0; transition: opacity .3s; }
+#toast.show { opacity: 1; }
+#demo-banner { position: fixed; right: 12px; bottom: 10px; z-index: 3; font: 12px system-ui; }
+#demo-banner a { color: #ff7a2a; background: #000a; padding: 6px 10px; border-radius: 4px; text-decoration: none; }

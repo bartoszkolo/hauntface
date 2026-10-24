@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.shots/
+.old/
+.DS_Store
+.wrangler/
+__pycache__/

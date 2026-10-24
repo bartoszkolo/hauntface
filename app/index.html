@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hauntface</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="nodebug">
+<canvas id="gl"></canvas>
+<canvas id="fx"></canvas>
+<div id="status"></div>
+<div id="start"><div><span data-i18n="start"></span><small data-i18n="startHint"></small></div></div>
+<div id="toast"></div>
+<div id="demo-banner" hidden><a href="https://github.com/bartoszkolo/hauntface" target="_blank" rel="noopener" data-i18n="demo"></a></div>
+
+<div id="panel">
+  <h2 data-i18n="settings"></h2>
+
+  <h3 data-i18n="look"></h3>
+  <div class="row">
+    <div><label data-i18n="character"></label><select id="cfg-look">
+      <option value="reaper" data-i18n="reaper"></option><option value="skull" data-i18n="skull"></option><option value="witch" data-i18n="witch"></option></select></div>
+    <div><label data-i18n="language"></label><select id="cfg-lang"><option value="pl">Polski</option><option value="en">English</option></select></div>
+  </div>
+  <div class="row">
+    <div><label data-i18n="eyeFire"></label><select id="cfg-theme">
+      <option value="fire" data-i18n="fire"></option><option value="ghost" data-i18n="ghost"></option><option value="ice" data-i18n="ice"></option>
+      <option value="blood" data-i18n="blood"></option><option value="void" data-i18n="void"></option></select></div>
+    <div><label data-i18n="quality"></label><select id="cfg-quality">
+      <option value="0.5" data-i18n="qLow"></option><option value="0.75" data-i18n="qMid"></option><option value="1" data-i18n="qHigh"></option></select></div>
+  </div>
+  <div class="row">
+    <div><label data-i18n="ambient"></label><input id="cfg-ambient" type="range" min="0" max="2" step="0.05"></div>
+    <div><label data-i18n="candle"></label><input id="cfg-candle" type="range" min="0" max="3" step="0.1"></div>
+    <div><label data-i18n="volume"></label><input id="cfg-volume" type="range" min="0" max="1.5" step="0.05"></div>
+  </div>
+
+  <h3 data-i18n="animatronics"></h3>
+  <label class="check"><input id="cfg-family" type="checkbox"> <span data-i18n="family"></span></label>
+  <label class="check"><input id="cfg-ambientSound" type="checkbox"> <span data-i18n="ambientSound"></span></label>
+  <label class="check"><input id="cfg-servo" type="checkbox"> <span data-i18n="servo"></span></label>
+  <label class="check"><input id="cfg-auto" type="checkbox"> <span data-i18n="auto"></span></label>
+  <label class="check"><input id="cfg-doze" type="checkbox"> <span data-i18n="doze"></span></label>
+  <label class="check"><input id="cfg-camera" type="checkbox"> <span data-i18n="camera"></span></label>
+  <label class="check"><input id="cfg-camInvert" type="checkbox"> <span data-i18n="camInvert"></span></label>
+  <label class="check"><input id="cfg-bell" type="checkbox"> <span data-i18n="bell"></span></label>
+  <label class="check"><input id="cfg-riddles" type="checkbox"> <span data-i18n="riddles"></span></label>
+
+  <h3 data-i18n="effects"></h3>
+  <div class="fx" id="fx-buttons"></div>
+  <label data-i18n="puppet"></label>
+  <input id="say" data-i18n-ph="puppetPh">
+
+  <h3 data-i18n="keys"></h3>
+  <p class="note" id="keys-note"></p>
+  <label data-i18n="keyNvidia"></label><input id="key-nvidia" type="password" autocomplete="off">
+  <label data-i18n="keyAnthropic"></label><input id="key-anthropic" type="password" autocomplete="off">
+  <label data-i18n="keyOpenai"></label><input id="key-openai" type="password" autocomplete="off">
+
+  <h3 data-i18n="brain"></h3>
+  <label data-i18n="provider"></label>
+  <select id="cfg-llm"><option value="nvidia" data-i18n="nvidia"></option><option value="anthropic" data-i18n="anthropic"></option></select>
+  <div class="row">
+    <div><label data-i18n="nvidiaModel"></label><input id="cfg-nvidiaModel"></div>
+    <div><label data-i18n="claudeModel"></label><select id="cfg-model">
+      <option value="claude-opus-5-5">claude-opus-5-5</option><option value="claude-sonnet-5-5">claude-sonnet-5-5</option><option value="claude-haiku-5-5">claude-haiku-5-5</option></select></div>
+  </div>
+  <label data-i18n="personaSkull"></label><textarea id="cfg-persona"></textarea>
+  <label data-i18n="personaWitch"></label><textarea id="cfg-personaWitch"></textarea>
+
+  <h3 data-i18n="listening"></h3>
+  <select id="cfg-stt"><option value="whisper" data-i18n="sttWhisper"></option><option value="webspeech" data-i18n="sttWeb"></option></select>
+  <label data-i18n="whisperUrl"></label><input id="cfg-whisperUrl">
+  <div class="row">
+    <div><label data-i18n="whisperModel"></label><input id="cfg-whisperModel"></div>
+    <div><label data-i18n="threshold"></label><input id="cfg-threshold" type="number" step="0.005" min="0.005"></div>
+  </div>
+
+  <h3 data-i18n="voice"></h3>
+  <select id="cfg-tts"><option value="openai" data-i18n="ttsOpenai"></option><option value="browser" data-i18n="ttsBrowser"></option></select>
+  <div class="row">
+    <div><label data-i18n="voiceSkull"></label><input id="cfg-voice"></div>
+    <div><label data-i18n="voiceWitch"></label><input id="cfg-voiceWitch"></div>
+    <div><label data-i18n="pitch"></label><input id="cfg-pitch" type="number" step="0.05" min="0.5" max="1.2"></div>
+  </div>
+
+  <div class="actions"><button id="save" data-i18n="save"></button><button id="test" class="ghost" data-i18n="test"></button></div>
+  <div class="keys" id="hotkeys"></div>
+</div>
+
+<script id="frag" type="x-shader/x-fragment">#version 300 es
+precision highp float;
+uniform vec2 uRes;
+uniform float uTime;
+uniform mat3 uRot;
+uniform vec3 uPos;
+uniform float uJaw;
+uniform vec3 uGaze;
+uniform float uFire;
+uniform vec3 uC1;
+uniform vec3 uC2;
+uniform float uAmb;
+uniform float uCandle;
+uniform float uFlash;
+uniform vec3 uFlashDir;
+uniform float uHood;
+uniform float uGlitch;
+uniform float uRed;
+uniform float uChar;
+uniform float uBlink;
+out vec4 fragColor;
+#define ZERO min(int(uTime), 0)
+
+const vec3 CAM = vec3(0.0, 0.0, 3.6);
+const vec3 TARGET = vec3(0.0, -0.14, 0.0);
+const float FOC = 2.6;
+
+float hash(vec3 p) { p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+float noise(vec3 x) {
+  vec3 i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(hash(i), hash(i + vec3(1, 0, 0)), f.x), mix(hash(i + vec3(0, 1, 0)), hash(i + vec3(1, 1, 0)), f.x), f.y),
+             mix(mix(hash(i + vec3(0, 0, 1)), hash(i + vec3(1, 0, 1)), f.x), mix(hash(i + vec3(0, 1, 1)), hash(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}
+float fbm(vec3 p) { float a = 0.5, s = 0.0; for (int i = ZERO; i < 5; i++) { s += a * noise(p); p *= 2.03; a *= 0.5; } return s; }
+
+float sdEll(vec3 p, vec3 r) { float k0 = length(p / r); float k1 = length(p / (r * r)); return k0 * (k0 - 1.0) / k1; }
+float smin(float a, float b, float k) { float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0); return mix(b, a, h) - k * h * (1.0 - h); }
+float smax(float a, float b, float k) { return -smin(-a, -b, k); }
+float sdRBox(vec3 p, vec3 b, float r) { vec3 q = abs(p) - b + r; return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0) - r; }
+float sdCap(vec3 p, vec3 a, vec3 b, float r) { vec3 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0); return length(pa - ba * h) - r; }
+
+// rząd zębów: powtórzenie po łuku
+float teeth(vec3 q, vec3 c, float R, float dir, float seed) {
+  vec3 t = q - c;
+  float stp = 0.19;
+  float a = atan(t.x, t.z);
+  float id = clamp(floor(a / stp + 0.5), -5.0, 5.0);
+  float an = id * stp, cs = cos(an), sn = sin(an);
+  vec3 l = vec3(t.x * cs - t.z * sn, t.y, t.x * sn + t.z * cs - R);
+  float ai = abs(id);
+  float h = ai < 1.5 ? 0.062 : (ai < 2.5 ? 0.074 : 0.052);
+  float w = ai < 1.5 ? 0.031 : (ai < 2.5 ? 0.027 : 0.032);
+  float dp = ai < 2.5 ? 0.022 : 0.042;
+  float r = hash(vec3(id, seed, 3.0));
+  h *= 0.9 + 0.2 * r;
+  if (r > 0.88) h *= 0.55;
+  l.y -= dir * h;
+  float tip = clamp(0.5 + dir * l.y / (2.0 * h), 0.0, 1.0);
+  float d = sdRBox(l, vec3(w * (1.0 - 0.3 * tip), h, dp * (1.0 - 0.3 * tip)), 0.017);
+  if (r < 0.08) d = max(d, 0.03);
+  return d;
+}
+
+vec2 mapSkull(vec3 q) {
+  vec3 s = vec3(abs(q.x), q.y, q.z);
+  float d = sdEll(q - vec3(0.0, 0.38, -0.18), vec3(0.72, 0.78, 0.94));
+  d = smin(d, sdEll(q - vec3(0.0, -0.10, 0.27), vec3(0.62, 0.64, 0.52)), 0.22);
+  d = smin(d, sdEll(s - vec3(0.30, 0.20, 0.57), vec3(0.22, 0.06, 0.12)), 0.11);
+  d = smin(d, sdEll(s - vec3(0.51, -0.19, 0.31), vec3(0.17, 0.14, 0.26)), 0.12);
+  d = smin(d, sdCap(s, vec3(0.53, -0.23, 0.22), vec3(0.70, -0.19, -0.18), 0.05), 0.08);
+  d = smin(d, sdEll(q - vec3(0.0, -0.46, 0.36), vec3(0.36, 0.18, 0.31)), 0.12);
+  d = smax(d, -sdEll(s - vec3(0.88, -0.06, 0.04), vec3(0.24, 0.36, 0.44)), 0.16);
+  d = smax(d, -sdEll(s - vec3(0.47, -0.52, 0.38), vec3(0.12, 0.13, 0.20)), 0.10);
+  d = smax(d, -sdEll(s - vec3(0.0, 0.02, 0.78), vec3(0.09, 0.07, 0.12)), 0.06); // grzbiet nosa
+  float solid = d;
+  d = max(d, -(d + 0.07));
+  vec3 sp = s - vec3(0.30, 0.0, 0.66);
+  float ca = cos(-0.2), sa = sin(-0.2);
+  sp.xy = vec2(ca * sp.x - sa * sp.y, sa * sp.x + ca * sp.y); // zewnętrzny kącik niżej
+  float sock = mix(sdEll(sp, vec3(0.20, 0.175, 0.44)), sdRBox(sp, vec3(0.17, 0.14, 0.44), 0.09), 0.55);
+  d = smax(d, -sock, 0.03);
+  vec3 nq = q - vec3(0.0, -0.30, 0.66);
+  float nose = sdEll(nq, vec3(0.06 + 0.055 * smoothstep(0.12, -0.12, nq.y), 0.15, 0.3));
+  d = smax(d, -nose, 0.02);
+  float m = solid < -0.035 ? 5.0 : 1.0;
+  float t = teeth(q, vec3(0.0, -0.585, 0.10), 0.345, -1.0, 1.0);
+  if (t < d) { d = t; m = 2.0; }
+  return vec2(d, m);
+}
+
+vec2 mapJaw(vec3 q) {
+  vec3 hg = vec3(0.0, -0.38, -0.16);
+  vec3 j = q - hg; float c = cos(uJaw), sn = sin(uJaw);
+  j = vec3(j.x, c * j.y + sn * j.z, -sn * j.y + c * j.z) + hg;
+  vec3 s = vec3(abs(j.x), j.y, j.z);
+  float outer = sdEll(j - vec3(0.0, -0.90, 0.12), vec3(0.47, 0.14, 0.42));
+  float inner = sdEll(j - vec3(0.0, -0.86, -0.04), vec3(0.35, 0.30, 0.34));
+  float d = smax(outer, -inner, 0.05);
+  d = smin(d, sdEll(j - vec3(0.0, -0.98, 0.44), vec3(0.18, 0.09, 0.09)), 0.07);
+  d = smin(d, sdRBox(s - vec3(0.45, -0.64, -0.12), vec3(0.05, 0.24, 0.09), 0.04), 0.09);
+  d = smin(d, sdEll(s - vec3(0.45, -0.40, -0.16), vec3(0.05, 0.04, 0.06)), 0.04);
+  float m = 1.0;
+  float t = teeth(j, vec3(0.0, -0.79, 0.09), 0.33, 1.0, 7.0);
+  if (t < d) { d = t; m = 2.0; }
+  return vec2(d, m);
+}
+
+float mapHood(vec3 q) {
+  vec3 hq = q - vec3(0.0, 0.32, -0.25);
+  hq.z += 0.3 * smoothstep(0.3, 1.3, hq.y);           // szpic kaptura opada do tyłu
+  float a = atan(hq.x, hq.z);
+  float o = sdEll(hq, vec3(0.98, 1.25, 1.10));
+  o += 0.04 * sin(a * 6.0 + hq.y * 2.5) * smoothstep(0.5, -1.2, hq.y) + 0.014 * sin(a * 13.0 + hq.y * 4.0);
+  float d = abs(o) - 0.03;
+  float open = sdEll(q - vec3(0.0, -0.18, 1.18), vec3(0.84, 1.22, 0.98));
+  d = smax(d, -open, 0.06);
+  vec3 cq = q - vec3(0.0, -2.0, -0.3);
+  float cloak = sdEll(cq, vec3(1.9, 1.0, 1.0)) + 0.05 * sin(atan(cq.x, cq.z) * 9.0);
+  d = smin(d, max(cloak, -open + 0.12), 0.25);
+  return d;
+}
+
+
+#if WITCH
+// ---------------- CZAROWNICA ----------------
+float sdCappedCone(vec3 p, float h, float r1, float r2) {
+  vec2 q = vec2(length(p.xz), p.y);
+  vec2 k1 = vec2(r2, h), k2 = vec2(r2 - r1, 2.0 * h);
+  vec2 ca = vec2(q.x - min(q.x, (q.y < 0.0) ? r1 : r2), abs(q.y) - h);
+  vec2 cb = q - k1 + k2 * clamp(dot(k1 - q, k2) / dot(k2, k2), 0.0, 1.0);
+  float sg = (cb.x < 0.0 && ca.y < 0.0) ? -1.0 : 1.0;
+  return sg * sqrt(min(dot(ca, ca), dot(cb, cb)));
+}
+const float MOUTHY = -0.43;
+float witchFull(vec3 q) {
+  vec3 s = vec3(abs(q.x), q.y, q.z);
+  float d = sdEll(q - vec3(0.0, 0.08, 0.0), vec3(0.52, 0.82, 0.60));
+  d = smin(d, sdEll(q - vec3(0.0, -0.25, 0.20), vec3(0.44, 0.48, 0.46)), 0.2);
+  d = smin(d, sdEll(s - vec3(0.33, -0.02, 0.40), vec3(0.15, 0.11, 0.15)), 0.1);   // kości policzkowe
+  d = smax(d, -sdEll(s - vec3(0.35, -0.30, 0.48), vec3(0.11, 0.16, 0.12)), 0.1);  // zapadnięte policzki
+  d = smin(d, sdEll(s - vec3(0.21, 0.25, 0.50), vec3(0.19, 0.06, 0.12)), 0.08);   // krzaczaste łuki brwiowe
+  d = smax(d, -sdEll(s - vec3(0.21, 0.11, 0.58), vec3(0.13, 0.085, 0.12)), 0.05); // oczodoły
+  d = smin(d, sdCap(q, vec3(0.0, -0.56, 0.36), vec3(0.0, -0.76, 0.56), 0.09), 0.14); // spiczasty podbródek
+  d = smin(d, sdCap(q, vec3(0.0, -0.76, 0.56), vec3(0.0, -0.84, 0.70), 0.04), 0.07);
+  d = smin(d, length(q - vec3(-0.07, -0.70, 0.62)) - 0.03, 0.02);                // brodawka na brodzie
+  d = smin(d, sdEll(q - vec3(0.0, -0.40, 0.53), vec3(0.19, 0.06, 0.08)), 0.05);   // wargi
+  float n = sdCap(q, vec3(0.0, 0.10, 0.56), vec3(0.0, -0.02, 0.80), 0.05);         // nochal
+  n = smin(n, sdCap(q, vec3(0.0, -0.02, 0.80), vec3(0.0, -0.24, 0.97), 0.052), 0.06);
+  n = smin(n, sdCap(q, vec3(0.0, -0.24, 0.97), vec3(0.0, -0.40, 0.93), 0.05), 0.05); // zwisający haczyk
+  n = smin(n, sdEll(q - vec3(0.0, -0.40, 0.92), vec3(0.055, 0.06, 0.055)), 0.04);
+  n = smin(n, length(q - vec3(0.05, -0.06, 0.86)) - 0.03, 0.015);                 // brodawki na nosie
+  n = smin(n, length(q - vec3(-0.04, -0.26, 0.99)) - 0.02, 0.01);
+  n = smax(n, -(length(s - vec3(0.03, -0.42, 0.88)) - 0.02), 0.01);               // dziurki
+  d = smin(d, n, 0.05);
+  d = smin(d, sdCap(s, vec3(0.56, 0.05, -0.05), vec3(0.76, 0.27, -0.14), 0.05), 0.08); // spiczaste uszy
+  return d;
+}
+float witchJaw(vec3 q) { // uproszczona dolna część twarzy (dla ruchomej żuchwy)
+  vec3 s = vec3(abs(q.x), q.y, q.z);
+  float d = sdEll(q - vec3(0.0, 0.08, 0.0), vec3(0.52, 0.82, 0.60));
+  d = smin(d, sdEll(q - vec3(0.0, -0.25, 0.20), vec3(0.44, 0.48, 0.46)), 0.2);
+  d = smax(d, -sdEll(s - vec3(0.35, -0.30, 0.48), vec3(0.11, 0.16, 0.12)), 0.1);
+  d = smin(d, sdCap(q, vec3(0.0, -0.56, 0.36), vec3(0.0, -0.76, 0.56), 0.09), 0.14);
+  d = smin(d, sdCap(q, vec3(0.0, -0.76, 0.56), vec3(0.0, -0.84, 0.70), 0.04), 0.07);
+  d = smin(d, length(q - vec3(-0.07, -0.70, 0.62)) - 0.03, 0.02);
+  d = smin(d, sdEll(q - vec3(0.0, -0.40, 0.53), vec3(0.19, 0.06, 0.08)), 0.05);
+  return d;
+}
+vec2 mapWitchHead(vec3 q) {
+  float full = witchFull(q);
+  float region = max(q.y - MOUTHY, 0.08 - q.z);           // obszar żuchwy (z przodu, pod ustami)
+  vec2 a = vec2(max(full, -region), (-region > full) ? 6.0 : 9.0);
+  vec3 hg = vec3(0.0, MOUTHY, 0.05);
+  vec3 j = q - hg; float c = cos(uJaw * 0.8), sn = sin(uJaw * 0.8);
+  j = vec3(j.x, c * j.y + sn * j.z, -sn * j.y + c * j.z) + hg;
+  if (j.y < MOUTHY + 0.12) {
+    float fj = witchJaw(j), rj = max(j.y - MOUTHY, 0.08 - j.z);
+    float lower = max(fj, rj);
+    if (lower < a.x) a = vec2(lower, rj > fj ? 6.0 : 9.0);
+  }
+  // krzywe, pożółkłe zęby
+  float t = sdRBox(q - vec3(-0.10, MOUTHY - 0.035, 0.49), vec3(0.02, 0.04, 0.015), 0.01);
+  t = min(t, sdRBox(q - vec3(0.02, MOUTHY - 0.03, 0.51), vec3(0.022, 0.035, 0.015), 0.01));
+  t = min(t, sdRBox(q - vec3(0.11, MOUTHY - 0.05, 0.47), vec3(0.018, 0.05, 0.015), 0.01));
+  t = min(t, sdRBox(j - vec3(-0.05, MOUTHY + 0.03, 0.49), vec3(0.02, 0.035, 0.015), 0.01));
+  t = min(t, sdRBox(j - vec3(0.07, MOUTHY + 0.04, 0.48), vec3(0.018, 0.045, 0.015), 0.01));
+  if (t < a.x) a = vec2(t, 2.0);
+  // oczy i powieki
+  vec3 sq = vec3(abs(q.x), q.y, q.z) - vec3(0.21, 0.11, 0.51);
+  float eye = length(sq) - 0.085;
+  if (eye < a.x) a = vec2(eye, 8.0);
+  float L = mix(0.02, -0.11, uBlink);
+  float lid = max(abs(length(sq) - 0.094) - 0.008, min(L - sq.y, sq.y + 0.065));
+  if (lid < a.x) a = vec2(lid, 9.0);
+  return a;
+}
+vec2 mapHat(vec3 q) {
+  vec3 h = q - vec3(0.0, 0.62, -0.08);
+  float brim = sdEll(h + vec3(0.0, 0.025 * sin(atan(h.x, h.z) * 3.0), 0.0), vec3(1.15, 0.03, 1.05));
+  vec3 c = h - vec3(0.0, 0.62, 0.0);
+  float bend = smoothstep(-0.2, 0.62, c.y);
+  c.x -= 0.32 * bend * bend; c.z += 0.2 * bend;
+  float cone = sdCappedCone(c, 0.62, 0.52, 0.03) + 0.01 * sin(c.y * 14.0) * smoothstep(-0.6, 0.6, c.y);
+  float d = smin(brim, cone, 0.06);
+  float band = max(abs(c.y + 0.5) - 0.07, cone - 0.012);
+  return band < d + 0.002 ? vec2(min(d, band), 11.0) : vec2(d, 10.0);
+}
+float mapHair(vec3 q) { // siwe strąki po bokach i z tyłu (symetrycznie, bez rozgałęzień — szybka kompilacja)
+  vec3 h = q - vec3(0.0, 0.0, -0.05);
+  float sx = h.x < 0.0 ? -1.0 : 1.0;
+  float aa = atan(abs(h.x), h.z);
+  float stp = 0.11;
+  float id = clamp(floor((aa - 1.05) / stp + 0.5), 0.0, 19.0);
+  float an = 1.05 + id * stp, hid = id + (sx > 0.0 ? 0.0 : 37.0);
+  float r = 0.64 + 0.06 * fract(sin(hid * 12.9898) * 43758.5453);
+  vec2 xz = vec2(abs(h.x), h.z) - vec2(sin(an), cos(an)) * r;
+  xz += 0.035 * vec2(sin(h.y * 7.0 + hid), cos(h.y * 5.0 + hid * 1.7));
+  float d = length(xz) - 0.02;
+  float bot = -0.95 - 0.35 * fract(sin(hid * 78.233) * 12345.678);
+  return max(d, max(h.y - 0.64, bot - h.y));
+}
+vec2 mapWitch(vec3 q) {
+  vec2 a = mapWitchHead(q);
+  vec2 h = mapHat(q); if (h.x < a.x) a = h;
+  float hr = mapHair(q) * 0.8; if (hr < a.x) a = vec2(hr, 7.0);
+  return a;
+}
+#endif
+
+vec3 toLocal(vec3 p) { return (p - uPos) * uRot; }
+
+vec2 map(vec3 p) {
+  vec3 q = toLocal(p);
+#if WITCH
+  return mapWitch(q);
+#else
+  vec2 a = mapSkull(q);
+  vec2 b = mapJaw(q);
+  if (b.x < a.x) a = b;
+  float pl = length(q - (vec3(-0.30, 0.0, 0.40) + uGaze)) - 0.024;
+  float pr = length(q - (vec3(0.30, 0.0, 0.40) + uGaze)) - 0.024;
+  float pu = min(pl, pr);
+  if (pu < a.x) a = vec2(pu, 4.0);
+  if (uHood > 0.5) { float h = mapHood(q) * 0.8; if (h < a.x) a = vec2(h, 3.0); }
+  return a;
+#endif
+}
+
+vec3 calcNormal(vec3 p) {
+  vec3 n = vec3(0.0);
+  for (int i = ZERO; i < 4; i++) {
+    vec3 e = 0.5773 * (2.0 * vec3(float(((i + 3) >> 1) & 1), float((i >> 1) & 1), float(i & 1)) - 1.0);
+    n += e * map(p + e * 0.0012).x;
+  }
+  return normalize(n);
+}
+float shadow(vec3 ro, vec3 rd, float k) {
+  float res = 1.0, t = 0.02;
+  for (int i = ZERO; i < 28; i++) { float h = map(ro + rd * t).x; res = min(res, k * h / t); t += clamp(h, 0.02, 0.25); if (res < 0.005 || t > 3.0) break; }
+  return clamp(res, 0.0, 1.0);
+}
+float calcAO(vec3 p, vec3 n) {
+  float o = 0.0, s = 1.0;
+  for (int i = ZERO; i < 5; i++) { float h = 0.015 + 0.06 * float(i); o += (h - map(p + n * h).x) * s; s *= 0.75; }
+  return clamp(1.0 - 2.5 * o, 0.0, 1.0);
+}
+
+vec3 shade(vec3 p, vec3 rd, float m) {
+  vec3 n = calcNormal(p);
+  vec3 q = toLocal(p);
+  if (m == 1.0 || m == 5.0) { // chropowatość kości
+    vec3 bq = q * 18.0; float e = 0.18;
+    float b0 = fbm(bq);
+    vec3 g = vec3(fbm(bq + vec3(e, 0, 0)) - b0, fbm(bq + vec3(0, e, 0)) - b0, fbm(bq + vec3(0, 0, e)) - b0) / e;
+    n = normalize(n - uRot * g * 0.05);
+  }
+  if (m == 9.0) { // pomarszczona skóra z brodawkami
+    vec3 bq = q * 13.0; float e = 0.15;
+    float b0 = fbm(bq);
+    vec3 g = vec3(fbm(bq + vec3(e, 0, 0)) - b0, fbm(bq + vec3(0, e, 0)) - b0, fbm(bq + vec3(0, 0, e)) - b0) / e;
+    float wr = sin(q.y * 70.0 + 4.0 * noise(q * 5.0)) * smoothstep(0.22, 0.4, q.y) + sin(length(vec2(abs(q.x) - 0.21, q.y - 0.11)) * 90.0) * 0.6 * smoothstep(0.3, 0.12, length(vec2(abs(q.x) - 0.21, q.y - 0.11)));
+    n = normalize(n - uRot * (g * 0.07 + vec3(0.0, wr * 0.04, 0.0)));
+  }
+  float st = fbm(q * 3.1 + 3.0), st2 = fbm(q * 9.0 + 7.0);
+  vec3 alb;
+  if (m == 1.0) {
+    alb = mix(vec3(0.42, 0.35, 0.24), vec3(0.76, 0.68, 0.52), smoothstep(0.3, 0.7, st));
+    alb *= mix(1.0, 0.5, smoothstep(0.55, 0.75, st2));
+    float cr = 1.0 - smoothstep(0.0, 0.014, abs(noise(q * 6.0) - 0.5));
+    cr *= smoothstep(0.62, 0.68, fbm(q * 1.7 + 11.0));
+    alb *= 1.0 - 0.8 * cr;
+  } else if (m == 2.0) {
+    alb = mix(vec3(0.74, 0.66, 0.46), vec3(0.42, 0.32, 0.18), smoothstep(0.45, 0.8, st2));
+  } else if (m == 3.0) {
+    alb = vec3(0.03, 0.026, 0.032) * (0.75 + 0.5 * noise(q * vec3(4.0, 28.0, 4.0)));
+  } else if (m == 9.0) {
+    alb = mix(vec3(0.16, 0.25, 0.07), vec3(0.32, 0.40, 0.14), smoothstep(0.3, 0.7, st));
+    alb = mix(alb, vec3(0.30, 0.22, 0.09), smoothstep(0.55, 0.78, st2) * 0.8);          // plamy
+    alb *= 1.0 - 0.45 * smoothstep(0.8, 0.86, noise(q * 16.0));                          // brodawki
+    alb = mix(alb, vec3(0.42, 0.16, 0.10), smoothstep(0.14, 0.0, length(q - vec3(0.0, -0.38, 0.93)))); // czerwony koniec nosa
+    alb = mix(alb, vec3(0.16, 0.06, 0.09), smoothstep(0.1, 0.0, length((q - vec3(0.0, -0.40, 0.58)) * vec3(0.5, 2.0, 1.0)))); // sine wargi
+  } else if (m == 6.0) {
+    alb = vec3(0.14, 0.02, 0.03);
+  } else if (m == 7.0) {
+    alb = vec3(0.30, 0.31, 0.32) * (0.6 + 0.5 * noise(q * vec3(30.0, 3.0, 30.0)));
+  } else if (m == 10.0) {
+    alb = vec3(0.035, 0.03, 0.04) * (0.8 + 0.4 * noise(q * 8.0));
+  } else if (m == 11.0) {
+    alb = vec3(0.20, 0.05, 0.24);
+  } else {
+    alb = vec3(0.20, 0.15, 0.10);
+  }
+  float occ = calcAO(p, n);
+  vec3 col = vec3(0.0);
+  vec3 kd = normalize(vec3(-0.6, 0.75, 0.55));
+  float kdif = clamp(dot(n, kd), 0.0, 1.0);
+  float sh = shadow(p + n * 0.004, uFlash > 0.0 ? uFlashDir : kd, uFlash > 0.0 ? 16.0 : 10.0); // jedno wywołanie = szybsza kompilacja
+  float ksh = uFlash > 0.0 ? 1.0 : (kdif > 0.001 ? sh : 0.0);
+  col += alb * vec3(0.42, 0.48, 0.68) * kdif * ksh * uAmb;
+  col += alb * vec3(0.07, 0.07, 0.10) * (0.5 + 0.5 * n.y) * occ * uAmb;
+  vec3 cl = vec3(0.0, -2.2, 2.6) - p; float cd = length(cl); cl /= cd;
+  col += alb * vec3(1.0, 0.52, 0.22) * clamp(dot(n, cl), 0.0, 1.0) * uCandle / (1.0 + 0.15 * cd * cd) * occ;
+  for (int i = ZERO; i < 2; i++) {
+    vec3 ep = uPos + uRot * (uChar > 0.5 ? vec3(i == 0 ? -0.21 : 0.21, 0.11, 0.66) : vec3(i == 0 ? -0.30 : 0.30, 0.0, 0.38));
+    vec3 el = ep - p; float d2 = dot(el, el); el *= inversesqrt(d2);
+    float dif = clamp(dot(n, el) * 0.8 + 0.2, 0.0, 1.0);
+    col += alb * mix(uC1, uC2, 0.35) * uFire * dif * 0.05 / (d2 + 0.02) * (uChar > 0.5 ? 0.08 : 0.25 + 0.75 * clamp((0.6 - q.z) * 5.0, 0.0, 1.0));
+  }
+  vec3 mp = uPos + uRot * (uChar > 0.5 ? vec3(0.0, -0.47, 0.40) : vec3(0.0, -0.70, 0.12)); vec3 ml = mp - p; float md2 = dot(ml, ml);
+  col += alb * uC1 * uJaw * uFire * 0.25 * clamp(dot(n, normalize(ml)) * 0.7 + 0.3, 0.0, 1.0) / (md2 + 0.02);
+  float fre = pow(clamp(1.0 + dot(n, rd), 0.0, 1.0), 3.0);
+  col += vec3(0.22, 0.28, 0.45) * fre * 0.25 * uAmb * occ * (m == 3.0 ? 0.6 : 1.0);
+  if (uFlash > 0.0) {
+    float fd = clamp(dot(n, uFlashDir), 0.0, 1.0);
+    col += alb * vec3(0.8, 0.88, 1.0) * fd * sh * uFlash * 3.0;
+  }
+  vec3 hh = normalize(kd - rd);
+  col += vec3(0.6, 0.6, 0.7) * pow(clamp(dot(n, hh), 0.0, 1.0), m == 2.0 ? 60.0 : 22.0) * ksh * kdif * uAmb * (m == 3.0 || m == 10.0 ? 0.15 : m == 9.0 ? 0.5 : 0.35);
+  col *= mix(1.0, occ, 0.6);
+  return col;
+}
+
+
+#if WITCH
+// oko czarownicy: żółte białko z żyłkami, świecąca tęczówka, pionowa źrenica jak u kota
+vec3 shadeEye(vec3 p, vec3 rd) {
+  vec3 q = toLocal(p);
+  vec3 e = vec3(q.x < 0.0 ? -0.21 : 0.21, 0.11, 0.51);
+  vec3 dir = normalize(q - e);
+  vec3 gd = normalize(vec3(uGaze.x * 7.0, uGaze.y * 7.0, 1.0));
+  float k = dot(dir, gd);
+  vec3 side = normalize(cross(vec3(0.0, 1.0, 0.0), gd));
+  float slit = abs(dot(dir - gd * k, side));
+  vec3 n = uRot * dir;
+  float vein = smoothstep(0.62, 0.7, noise(q * 60.0)) * smoothstep(0.75, 0.3, k);
+  vec3 alb = mix(vec3(0.40, 0.34, 0.13), vec3(0.45, 0.05, 0.03), vein * 0.8);
+  vec3 kd = normalize(vec3(-0.6, 0.75, 0.55));
+  vec3 col = alb * (vec3(0.42, 0.48, 0.68) * clamp(dot(n, kd), 0.0, 1.0) * uAmb + 0.08 + vec3(1.0, 0.52, 0.22) * 0.12 * uCandle);
+  float iris = smoothstep(0.9, 0.93, k);
+  vec3 irisCol = mix(uC1, uC2, smoothstep(0.93, 0.99, k)) * (0.6 + 1.6 * uFire);
+  col = mix(col, irisCol, iris);
+  col *= 1.0 - iris * smoothstep(0.03, 0.015, slit) * smoothstep(0.92, 0.95, k);
+  col += vec3(1.0) * pow(clamp(dot(reflect(rd, n), kd), 0.0, 1.0), 80.0) * 1.5;      // mokry połysk
+  return col;
+}
+#endif
+
+void main() {
+  vec2 fc = gl_FragCoord.xy;
+  if (uGlitch > 0.0) {
+    float row = floor(fc.y / (uRes.y / 36.0));
+    float g = hash(vec3(row, floor(uTime * 18.0), 1.0));
+    if (g > 0.68) fc.x += (g - 0.68) * uRes.x * 0.35 * uGlitch;
+  }
+  vec2 uv = (2.0 * fc - uRes) / uRes.y;
+  vec3 ro = CAM;
+  vec3 f = normalize(TARGET - ro), r = normalize(cross(f, vec3(0, 1, 0))), u = cross(r, f);
+  vec3 rd = normalize(uv.x * r + uv.y * u + FOC * f);
+  vec3 col = vec3(0.006, 0.005, 0.008) + uC1 * 0.035 * uFire * exp(-dot(uv, uv) * 1.2);
+
+  // bryła ograniczająca: nie liczymy pustego tła
+  vec3 oc = ro - uPos; float bR = (uHood > 0.5 || uChar > 0.5) ? 2.6 : 1.45;
+  float bb = dot(oc, rd), cc = dot(oc, oc) - bR * bR, disc = bb * bb - cc;
+  if (disc > 0.0) {
+    float t = max(-bb - sqrt(disc), 0.0), tEnd = -bb + sqrt(disc);
+    float m = -1.0;
+    for (int i = ZERO; i < 140; i++) {
+      vec2 h = map(ro + rd * t);
+      if (h.x < 0.0007 * t) { m = h.y; break; }
+      t += h.x * 0.9;
+      if (t > tEnd) break;
+    }
+    if (m > 0.0) {
+      vec3 p = ro + rd * t;
+      if (m == 4.0) col = mix(uC2, vec3(1.0), 0.45) * (1.0 + 3.0 * uFire) * uFire;
+#if WITCH
+      else if (m == 8.0) col = shadeEye(p, rd);
+#endif
+      else col = shade(p, rd, m);
+    }
+  }
+  col *= mix(vec3(1.0), vec3(1.7, 0.35, 0.3), uRed);
+  col = (col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14);
+  col = pow(clamp(col, 0.0, 1.0), vec3(1.0 / 2.2));
+  vec2 q2 = gl_FragCoord.xy / uRes;
+  col *= 0.3 + 0.7 * pow(16.0 * q2.x * q2.y * (1.0 - q2.x) * (1.0 - q2.y), 0.28);
+  col += (hash(vec3(gl_FragCoord.xy, fract(uTime) * 100.0)) - 0.5) * 0.035;
+  fragColor = vec4(col, 1.0);
+}
+</script>
+
+<script src="i18n.js"></script>
+<script src="providers-core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

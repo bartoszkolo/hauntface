@@ -1,0 +1,26 @@
+name: Bug report
+description: Something doesn't work (the monster froze, won't talk, won't install…)
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes: { label: What happened?, description: What did you expect, and what did the monster do instead? }
+    validations: { required: true }
+  - type: dropdown
+    id: how
+    attributes:
+      label: How do you run it?
+      options: [Windows app, macOS app, Linux AppImage, Linux .deb, From source (tools/serve.py), Web demo]
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes: { label: Version, placeholder: e.g. 0.1.0 }
+  - type: input
+    id: gpu
+    attributes: { label: Computer / graphics card, placeholder: e.g. Windows 11, Intel UHD 620 }
+  - type: dropdown
+    id: brain
+    attributes: { label: Brain, options: [NVIDIA, Anthropic Claude, none] }
+  - type: textarea
+    id: debug
+    attributes: { label: Debug line, description: Press D in the app and paste the green text from the bottom-left corner. Remove anything private. }

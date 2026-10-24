@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hauntface — a living, talking AI monster face for your Halloween prop</title>
+<meta name="description" content="Free, open-source desktop app that turns any old monitor inside a Halloween prop into a living AI monster face. It watches trick-or-treaters, answers them in character and scares on cue. Windows, macOS, Linux.">
+<meta name="theme-color" content="#050304">
+<meta name="color-scheme" content="dark">
+<link rel="canonical" href="https://hauntface.cc/">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Hauntface">
+<meta property="og:title" content="Hauntface — your Halloween prop just woke up">
+<meta property="og:description" content="An AI face that watches trick-or-treaters, answers them in character and scares on cue. Free and open source.">
+<meta property="og:url" content="https://hauntface.cc/">
+<meta property="og:image" content="https://hauntface.cc/assets/social-preview.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="pl_PL">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Hauntface — your Halloween prop just woke up">
+<meta name="twitter:description" content="An AI monster face that listens, talks back in character and scares on cue. Free and open source.">
+<meta name="twitter:image" content="https://hauntface.cc/assets/social-preview.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel:wght@500;700&family=Spectral:ital,wght@0,400;0,600;1,400&family=Courier+Prime&display=swap&subset=latin-ext">
+<link rel="stylesheet" href="site.css">
+<script>document.documentElement.classList.add('js')</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Hauntface","applicationCategory":"EntertainmentApplication","operatingSystem":"Windows, macOS, Linux","license":"https://opensource.org/licenses/MIT","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://hauntface.cc/","codeRepository":"https://github.com/bartoszkolo/hauntface","description":"Open-source desktop app that turns an old monitor inside a Halloween prop into a living, talking AI monster face."}
+</script>
+<script src="site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main" data-pl="Przejdź do treści">Skip to content</a>
+
+<!-- Atmosphere overlays (decorative) -->
+<div class="fx-grain" aria-hidden="true"></div>
+<div class="fx-scan" aria-hidden="true"></div>
+<div class="fx-torch" aria-hidden="true"></div>
+<div class="fx-flicker" aria-hidden="true"></div>
+<div class="fx-flash" aria-hidden="true"></div>
+<svg class="fx-cracks" id="cracks" aria-hidden="true"></svg>
+<div class="fx-skull" id="skull" aria-hidden="true">
+  <svg viewBox="0 0 200 240"><path fill="#e8dfcf" d="M100 8C49 8 16 44 16 96c0 30 12 52 30 66v30c0 8 6 14 14 14h8v-18h10v20h12v-20h20v20h12v-20h10v18h8c8 0 14-6 14-14v-30c18-14 30-36 30-66C184 44 151 8 100 8z"/><path fill="#050304" d="M44 100c0-18 14-30 30-30 15 0 24 12 24 28 0 18-14 32-32 32-14 0-22-12-22-30zm112 0c0-18-14-30-30-30-15 0-24 12-24 28 0 18 14 32 32 32 14 0 22-12 22-30zM100 136l-14 30h28z"/></svg>
+</div>
+
+<header class="nav" id="nav">
+  <a class="wordmark" href="#top" aria-label="Hauntface — home">HAUNTFACE</a>
+  <nav class="nav-links" aria-label="Sections">
+    <a href="#how" data-pl="Jak to działa">How it works</a>
+    <a href="#scares" data-pl="Straszaki">Scares</a>
+    <a href="#faq">FAQ</a>
+    <a href="https://github.com/bartoszkolo/hauntface" rel="noopener">GitHub</a>
+  </nav>
+  <div class="nav-tools">
+    <button class="tool lang" id="langBtn" type="button" aria-label="Language / Język"><span data-l="en">EN</span><i>/</i><span data-l="pl">PL</span></button>
+    <button class="tool icon" id="soundBtn" type="button" aria-pressed="false" title="Sound" data-pl-title="Dźwięk">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="waves" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path class="mute" d="M16 9l6 6M22 9l-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span class="vh" data-pl="Dźwięk">Sound</span>
+    </button>
+    <button class="tool icon" id="calmBtn" type="button" aria-pressed="false" title="Calm mode — no flashes" data-pl-title="Tryb spokojny — bez błysków">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4c-1.5 2.5-4 4-4 7.5a4 4 0 0 0 8 0C16 8 13.5 6.5 12 4z" fill="none" stroke="currentColor" stroke-width="1.6"/><path class="calm-on" d="M5 19h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span class="vh" data-pl="Tryb spokojny">Calm mode</span>
+    </button>
+    <a class="btn btn-sm btn-ember" href="#download" data-pl="Pobierz">Download</a>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- HERO: darkness, a light, and two eyes -->
+<section class="hero" id="top">
+  <div class="hero-marks" aria-hidden="true">
+    <span class="mark m1">IT SEES YOU</span>
+    <span class="mark m2">WIDZI CIĘ</span>
+    <span class="mark m3">LET ME OUT</span>
+    <span class="mark m4">|||| |||| |||| ||</span>
+    <svg class="hand" viewBox="0 0 120 160"><g fill="#6e0a0a"><ellipse cx="60" cy="104" rx="34" ry="38"/><rect x="24" y="30" width="14" height="62" rx="7" transform="rotate(-14 31 60)"/><rect x="41" y="14" width="14" height="70" rx="7" transform="rotate(-4 48 50)"/><rect x="59" y="10" width="14" height="72" rx="7" transform="rotate(4 66 46)"/><rect x="76" y="20" width="13" height="64" rx="6.5" transform="rotate(12 82 52)"/><rect x="92" y="70" width="13" height="44" rx="6.5" transform="rotate(48 98 92)"/></g><path d="M40 140c2 10 0 18-2 20M70 142c1 8 3 12 2 18" stroke="#6e0a0a" stroke-width="4" fill="none" stroke-linecap="round"/></svg>
+  </div>
+  <div class="hero-dark" aria-hidden="true"></div>
+  <canvas class="hero-canvas" id="night" aria-hidden="true"></canvas>
+  <button class="eyes-hit" id="eyes" type="button" aria-label="The eyes. Don't." data-pl-label="Oczy. Nie rób tego."></button>
+
+  <div class="hero-inner wrap">
+    <p class="eyebrow" data-pl="Za darmo · Open source · Działa na twoim komputerze">Free · Open source · Runs on your computer</p>
+    <h1 class="glitch" id="headline" data-pl="Twoja dekoracja właśnie się obudziła.">Your Halloween prop just woke up.</h1>
+    <p class="typed" aria-live="off"><span id="typed" data-pl="Czekałam na ciebie…">I've been waiting for you…</span><span class="caret" aria-hidden="true"></span></p>
+    <p class="lede" data-pl="Twarz AI, która obserwuje gości, rozmawia z nimi i straszy na zawołanie. Zamień stary monitor w żywego potwora.">An AI face that watches trick-or-treaters, answers them in character and scares on cue. Turn any old monitor into a living monster.</p>
+    <div class="cta">
+      <a class="btn btn-ember btn-lg" id="heroDl" href="#download" data-pl="Pobierz">Download</a>
+      <a class="btn btn-ghost btn-lg" id="heroDemo" href="/demo/" data-pl="Wypróbuj demo w przeglądarce">Try the demo in your browser</a>
+    </div>
+    <p class="cta-note" id="heroNote" data-pl="Windows · macOS · Linux · licencja MIT · demo potrzebuje porządnej karty graficznej">Windows · macOS · Linux · MIT licence · the demo needs a decent GPU</p>
+    <p class="cta-note mobile-note" id="mobileNote" hidden data-pl="Hauntface to aplikacja na komputer — otwórz tę stronę na komputerze, żeby ją pobrać.">Hauntface is a desktop app — open this page on a computer to download it.</p>
+    <button class="dare" id="dareBtn" type="button" aria-pressed="false">
+      <span class="dare-off" data-pl="Włącz dźwięk… jeśli się odważysz">Enable sound… if you dare</span>
+      <span class="dare-on" data-pl="Wyłącz dźwięk">Turn the sound off</span>
+    </button>
+  </div>
+
+  <div class="osd" aria-hidden="true"><span class="rec">● REC</span><span>▶ PLAY&nbsp; SP</span><span id="clock">--:--:--</span></div>
+  <div class="fog" aria-hidden="true"><i></i><i></i></div>
+</section>
+
+<!-- Found footage -->
+<section class="tape" aria-labelledby="tapeTitle">
+  <div class="wrap tape-grid">
+    <figure class="crt reveal">
+      <div class="crt-glass" id="crt">
+        <div class="nosignal" aria-hidden="true"><span>NO SIGNAL</span></div>
+        <img src="assets/shot-reaper.jpg" alt="Hauntface running: the Reaper's cracked skull in a black hood, fire in its eye sockets" data-pl-alt="Hauntface w akcji: popękana czaszka Kostuchy w czarnym kapturze, ogień w oczodołach" width="1280" height="800" onerror="this.remove()">
+      </div>
+      <figcaption>TAPE 03 · 31.10 · 23:47 · <span data-pl="kamera przy drzwiach">front porch camera</span></figcaption>
+    </figure>
+    <div class="tape-copy">
+      <h2 id="tapeTitle" class="manifesto reveal" data-pl="Plastikowe kościotrupy w kółko powtarzają te same trzy zdania. <em>Ta twarz słucha.</em>">Plastic skeletons repeat the same three lines. <em>This one listens.</em></h2>
+      <p class="reveal" data-pl="Hauntface to darmowa aplikacja na komputer. Renderuje w czasie rzeczywistym trójwymiarową twarz potwora, <span class='w'>słucha</span>, co mówią goście, odpowiada im w roli i <span class='w'>patrzy</span> prosto na nich. Wystarczy stary monitor, kamerka i głośnik schowane w kostiumie.">Hauntface is a free desktop app. It renders a real-time 3D monster face, <span class="w">listens</span> to whoever walks up, answers them in character and <span class="w">looks</span> straight at them. All you need is an old monitor, a webcam and a speaker hidden in your prop.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Monsters -->
+<section class="section" id="monsters" aria-labelledby="monstersTitle">
+  <div class="wrap">
+    <p class="kicker" data-pl="Dwie twarze. Dwa charaktery.">Two faces. Two tempers.</p>
+    <h2 id="monstersTitle" class="h2" data-pl="Poznaj potwory">Meet the monsters</h2>
+    <div class="monsters">
+      <article class="monster reveal">
+        <div class="portrait p-reaper"><img src="assets/shot-reaper.jpg" alt="Kostucha, the Reaper" loading="lazy" width="1280" height="800" onerror="this.remove()"></div>
+        <div class="monster-body">
+          <h3><span lang="pl">Kostucha</span> <small data-pl="Śmierć w kapturze">The Reaper</small></h3>
+          <p data-pl="Stara, popękana czaszka w czarnym kapturze, a w oczodołach płonie ogień. Cierpliwa, uprzejma i zawsze coś liczy.">An aged, cracked skull in a black hood, with fire burning in its eye sockets. Patient. Polite. Always counting.</p>
+          <blockquote data-pl="„Podejdź bliżej, dziecko. Chcę tylko poznać twoje imię… do listy.”">“Come closer, child. I only need your name… for the list.”</blockquote>
+        </div>
+      </article>
+      <article class="monster reveal">
+        <div class="portrait p-witch"><img src="assets/shot-witch.jpg" alt="Baba Jaga, the witch" data-pl-alt="Baba Jaga, wiedźma" loading="lazy" width="1280" height="800" onerror="this.remove()"></div>
+        <div class="monster-body">
+          <h3><span lang="pl">Baba Jaga</span> <small data-pl="Wiedźma">The Witch</small></h3>
+          <p data-pl="Zielona, brodawkowata skóra, długi haczykowaty nos, kocie źrenice, które mrugają odrobinę za wolno. Spiczasty kapelusz, siwe kudły. Gadatliwa i zawsze głodna.">Green warty skin, a long hooked nose and slit cat eyes that blink a little too slowly. Pointy hat, grey hair. Chatty. Always hungry.</p>
+          <blockquote data-pl="„Zgadnij zagadkę, kruszynko, to dostaniesz cukierka. Nie zgadniesz… zostaniesz na kolacji.”">“Answer my riddle, sweetling, and you get candy. Answer wrong… and you stay for dinner.”</blockquote>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="section" id="how" aria-labelledby="howTitle">
+  <div class="wrap">
+    <p class="kicker" data-pl="Rytuał w trzech krokach">The ritual, in three steps</p>
+    <h2 id="howTitle" class="h2" data-pl="Jak to działa">How it works</h2>
+    <ol class="steps">
+      <li class="step reveal">
+        <span class="num">I</span>
+        <h3 data-pl="Pobierz i wybierz potwora">Download &amp; pick a monster</h3>
+        <p data-pl="Zainstaluj Hauntface na Windowsie, Macu albo Linuksie. Kostucha czy Baba Jaga — decyzja należy do ciebie.">Install Hauntface on Windows, Mac or Linux. The Reaper or the Witch — your choice.</p>
+      </li>
+      <li class="step reveal">
+        <span class="num">II</span>
+        <h3 data-pl="Schowaj ekran w dekoracji">Hide a screen in your prop</h3>
+        <p data-pl="Stary monitor albo telewizor, kamerka, mikrofon i głośnik — wszystko pod kapturem, w oknie albo za szybą.">An old monitor or TV, a webcam, a mic and a speaker — tucked under a hood, in a window or behind glass.</p>
+      </li>
+      <li class="step reveal">
+        <span class="num">III</span>
+        <h3 data-pl="Daj mu mózg i czekaj na ofiary">Give it a brain. Wait for <span class="w">victims</span>.</h3>
+        <p data-pl="Wklej klucz do Claude albo darmowy klucz NVIDIA. Potem zgaś światło przed domem i <span class='w'>czekaj</span>.">Paste a Claude key or a free NVIDIA key. Then turn off the porch light and <span class="w">wait</span>.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="section" id="features" aria-labelledby="featTitle">
+  <div class="wrap">
+    <p class="kicker" data-pl="Co potrafi">What it can do</p>
+    <h2 id="featTitle" class="h2" data-pl="To nie jest nagranie">It is not a recording</h2>
+    <div class="grid feats">
+      <article class="card reveal">
+        <h3 data-pl="Widzi cię">It <span class="w">sees</span> you</h3>
+        <p data-pl="Śledzi ruch z kamerki: odwraca głowę w stronę ludzi, budzi się, gdy ktoś podchodzi, i zasypia, gdy robi się cicho. Klatki (64×48) są analizowane lokalnie — nigdy nie są zapisywane ani wysyłane.">Webcam motion tracking: the head turns toward people, wakes up when someone approaches and dozes off when it's quiet. Frames (64×48) are processed locally — never stored, never sent.</p>
+      </article>
+      <article class="card reveal">
+        <h3 data-pl="Słucha">It listens</h3>
+        <p data-pl="Mikrofon i rozpoznawanie mowy Whisper. Mów normalnie — zrozumie.">Microphone plus Whisper speech-to-text. Talk to it normally — it understands.</p>
+      </article>
+      <article class="card reveal">
+        <h3 data-pl="Odpowiada w roli">It talks back, in character</h3>
+        <p data-pl="Myśli modelem językowym — Claude albo szybkie, darmowe modele NVIDIA na twoim kluczu. Nigdy nie wychodzi z roli.">It thinks with an LLM — Claude, or free and fast NVIDIA-hosted models on your own key. It never breaks character.</p>
+      </article>
+      <article class="card reveal">
+        <h3 data-pl="Demoniczny głos, prawdziwa mimika">Demonic voice, real lip sync</h3>
+        <p data-pl="Przetworzony, demoniczny albo wiedźmi głos, a szczęka porusza się w rytm słów.">A processed demonic or witchy voice, with the jaw moving in sync with every word.</p>
+      </article>
+      <article class="card reveal">
+        <h3 data-pl="Rusza się jak animatronik">Moves like an animatronic</h3>
+        <p data-pl="Głowa porusza się jak na serwach — razem z ich cichym piskiem. Oddycha, mruga, kiwa głową, kiedy mówi.">The head moves like it's on servos — servo whine included. It breathes, blinks and nods while it speaks.</p>
+      </article>
+      <article class="card reveal">
+        <h3 data-pl="Zagadki i licznik dusz">Riddles &amp; a soul counter</h3>
+        <p data-pl="Zagadki dla dzieciaków (dobra odpowiedź = cukierek) i licznik „dusz zebranych tej nocy”.">Riddles for trick-or-treaters (right answer → candy) and a counter of “souls collected tonight”.</p>
+      </article>
+      <article class="card reveal">
+        <h3 data-pl="Tryb lalkarza">Puppeteer mode</h3>
+        <p data-pl="Wpisz zdanie, a potwór je wypowie. Każdy straszak ma swój klawisz.">Type a line and the monster says it. Every scare has its own hotkey.</p>
+      </article>
+      <article class="card reveal">
+        <h3 data-pl="Po polsku i po angielsku">Polish &amp; English</h3>
+        <p data-pl="Mówi po polsku i po angielsku. Darmowa, open source, na Maca (Apple Silicon), Windowsa i Linuksa.">Speaks Polish and English. Free and open source, for Mac (Apple Silicon), Windows and Linux.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- Scares -->
+<section class="section" id="scares" aria-labelledby="scaresTitle">
+  <div class="wrap">
+    <p class="kicker" data-pl="Jeden klawisz. Jeden krzyk.">One key. One scream.</p>
+    <h2 id="scaresTitle" class="h2" data-pl="Arsenał straszaków">The scare arsenal</h2>
+    <p class="section-lede" data-pl="Każdy dźwięk jest syntezowany na żywo — żadnych plików audio. Wciśnij klawisz w odpowiednim momencie.">Every sound is synthesized live — no audio files. Press the key at exactly the wrong moment.</p>
+    <ul class="grid scares">
+      <li class="scare reveal"><kbd>S</kbd><div><h3 data-pl="Wyskok i pęknięcie">Lunge &amp; shatter</h3><p data-pl="Rzuca się na widza, a ekran „pęka”.">Lunges at the viewer and the screen “shatters”.</p></div></li>
+      <li class="scare reveal"><kbd>X</kbd><div><h3 data-pl="Egzorcysta">Exorcist</h3><p data-pl="Głowa obraca się do tyłu z trzaskiem kości.">The head turns all the way round, bones cracking.</p></div></li>
+      <li class="scare reveal"><kbd>L</kbd><div><h3 data-pl="Błyskawica">Lightning</h3><p data-pl="Prawdziwe oświetlenie 3D i grzmot.">Real 3D lighting, then thunder.</p></div></li>
+      <li class="scare reveal"><kbd>G</kbd><div><h3 data-pl="Opętanie">Possession</h3><p data-pl="Twarz się rozsypuje. Coś przejmuje kontrolę.">The face glitches. Something else takes over.</p></div></li>
+      <li class="scare reveal"><kbd>B</kbd><div><h3 data-pl="Krwawe łzy">Blood tears</h3><p data-pl="Z oczu powoli spływa krew.">Blood slowly runs from the eyes.</p></div></li>
+      <li class="scare reveal"><kbd>T</kbd><div><h3 data-pl="Tik">Twitch</h3><p data-pl="Nagłe, nerwowe szarpnięcie.">A sudden, nervous jerk.</p></div></li>
+      <li class="scare reveal"><kbd>P</kbd><div><h3 data-pl="Pająki">Spiders</h3><p data-pl="Wypełzają z oczodołów.">They crawl out of the eye sockets.</p></div></li>
+      <li class="scare reveal"><kbd>U</kbd><div><h3 data-pl="Duchy">Ghosts</h3><p data-pl="Dryfują we mgle.">They drift through the fog.</p></div></li>
+      <li class="scare reveal"><kbd>N</kbd><div><h3 data-pl="Wilki">Wolves</h3><p data-pl="Wycie gdzieś w oddali.">Howling, somewhere out there.</p></div></li>
+      <li class="scare reveal"><kbd>V</kbd><div><h3 data-pl="Pęknięty ekran">Cracked screen</h3><p data-pl="Szkło pęka od środka.">The glass cracks from the inside.</p></div></li>
+      <li class="scare reveal"><kbd>J</kbd><div><h3 data-pl="Dzwon o północy">Midnight bell</h3><p data-pl="Wybija prawdziwą godzinę. O północy — godzina czarownic.">Tolls the real hour. At midnight: the witching hour.</p></div></li>
+      <li class="scare reveal"><kbd>C</kbd><div><h3 data-pl="Szczękanie zębów">Teeth chatter</h3><p data-pl="Klik-klak-klik.">Click. Clack. Click.</p></div></li>
+      <li class="scare reveal"><kbd>W</kbd><div><h3 data-pl="Szept">Whisper</h3><p data-pl="Coś cicho, tuż przy uchu.">Something quiet, right by your ear.</p></div></li>
+      <li class="scare reveal"><kbd>R</kbd><div><h3 data-pl="Śmiech">Laugh</h3><p data-pl="Ten śmiech zostaje w głowie.">The laugh you'll hear in bed later.</p></div></li>
+      <li class="scare reveal"><kbd>E</kbd><div><h3 data-pl="Oczy wł./wył.">Eyes on / off</h3><p data-pl="Światło w oczach gaśnie… i wraca.">The light in the eyes goes out… and comes back.</p></div></li>
+    </ul>
+  </div>
+</section>
+
+<!-- Roadmap -->
+<section class="section" id="real" aria-labelledby="realTitle">
+  <div class="wrap">
+    <p class="kicker" data-pl="Wkrótce">Coming</p>
+    <h2 id="realTitle" class="h2" data-pl="Niech stanie się prawdziwe">Make it real</h2>
+    <p class="section-lede" data-pl="To, co dopiero się wykluwa. Jeszcze tego nie ma — ale już skrobie od środka.">Things still hatching. Not in the app yet — but already scratching at the lid.</p>
+    <div class="grid roadmap">
+      <article class="card soon reveal"><span class="tag" data-pl="wkrótce">coming</span><h3 data-pl="Most ESP32 / Arduino">ESP32 / Arduino bridge</h3><p data-pl="Prawdziwe diody w oczach, serwo w szczęce i wytwornica mgły sterowane z aplikacji.">Real LED eyes, a jaw servo and a fog machine, driven by the app.</p></article>
+      <article class="card soon reveal"><span class="tag" data-pl="wkrótce">coming</span><h3 data-pl="Pilot w telefonie">Phone remote</h3><p data-pl="Steruj potworem i straszakami z telefonu, schowany za krzakiem.">Puppeteer the monster and fire scares from your phone, hidden behind a bush.</p></article>
+      <article class="card soon reveal"><span class="tag" data-pl="wkrótce">coming</span><h3 data-pl="Tryb offline">Offline mode</h3><p data-pl="Ollama + whisper.cpp + Piper — bez klucza, bez internetu.">Ollama + whisper.cpp + Piper — no key, no internet.</p></article>
+      <article class="card soon reveal"><span class="tag" data-pl="wkrótce">coming</span><h3 data-pl="Więcej postaci">More characters</h3><p data-pl="Coś jeszcze czeka w ciemności na swoją kolej.">Something else is waiting its turn in the dark.</p></article>
+    </div>
+  </div>
+</section>
+
+<!-- Download -->
+<section class="section download" id="download" aria-labelledby="dlTitle">
+  <div class="wrap">
+    <p class="kicker" data-pl="Za darmo. Na zawsze. Licencja MIT.">Free. Forever. MIT licensed.</p>
+    <h2 id="dlTitle" class="h2" data-pl="Przywołaj go">Summon it</h2>
+    <p class="section-lede"><span id="dlVersion"></span> <span data-pl="Wybierz swój nagrobek.">Choose your tombstone.</span></p>
+    <div class="stones">
+      <article class="stone" data-os="win">
+        <span class="yours" data-pl="Twój system">Your system</span>
+        <h3>Windows</h3>
+        <p class="stone-meta">Windows 10 / 11 · x64</p>
+        <a class="btn btn-ember" href="https://github.com/bartoszkolo/hauntface/releases/latest/download/Hauntface-win-x64.exe" data-pl="Pobierz .exe">Download .exe</a>
+        <p class="rip">R.I.P.</p>
+      </article>
+      <article class="stone" data-os="mac">
+        <span class="yours" data-pl="Twój system">Your system</span>
+        <h3>macOS</h3>
+        <p class="stone-meta">Apple Silicon (M1+)</p>
+        <a class="btn btn-ember" href="https://github.com/bartoszkolo/hauntface/releases/latest/download/Hauntface-mac-arm64.dmg" data-pl="Pobierz .dmg">Download .dmg</a>
+        <p class="stone-note" data-pl="Mac z Intelem? <a href='https://github.com/bartoszkolo/hauntface#readme'>Uruchom ze źródeł</a>.">Intel Mac? <a href="https://github.com/bartoszkolo/hauntface#readme">Run from source</a>.</p>
+        <p class="rip">R.I.P.</p>
+      </article>
+      <article class="stone" data-os="linux">
+        <span class="yours" data-pl="Twój system">Your system</span>
+        <h3>Linux</h3>
+        <p class="stone-meta">x86_64</p>
+        <a class="btn btn-ember" href="https://github.com/bartoszkolo/hauntface/releases/latest/download/Hauntface-linux-x86_64.AppImage" data-pl="Pobierz AppImage">Download AppImage</a>
+        <a class="btn btn-ghost btn-sm" href="https://github.com/bartoszkolo/hauntface/releases/latest/download/Hauntface-linux-amd64.deb">.deb (Debian / Ubuntu)</a>
+        <p class="rip">R.I.P.</p>
+      </article>
+    </div>
+
+    <div class="dl-extra">
+      <a class="btn btn-ghost" href="/demo/" data-pl="Wypróbuj w przeglądarce — potrzebna porządna karta graficzna">Try it in your browser — needs a decent GPU</a>
+      <a class="btn btn-ghost" href="https://github.com/bartoszkolo/hauntface#readme" data-pl="Uruchom ze źródeł">Run from source</a>
+      <a class="btn btn-ghost" href="https://github.com/bartoszkolo/hauntface/releases" data-pl="Wszystkie wydania">All releases</a>
+    </div>
+
+    <details class="unsigned">
+      <summary data-pl="System ostrzega przed aplikacją? Przeczytaj to.">Your system warns you about the app? Read this.</summary>
+      <div class="unsigned-body">
+        <p data-pl="Wersje Hauntface nie są jeszcze podpisane certyfikatem (to kosztuje, a projekt jest darmowy), więc system pokaże ostrzeżenie. Kod jest otwarty — możesz go przejrzeć na GitHubie.">Hauntface builds aren't code-signed yet (certificates cost money; the project is free), so your OS will warn you. The code is open — you can read every line on GitHub.</p>
+        <h4>Windows</h4>
+        <p data-pl="Gdy pojawi się „System Windows ochronił ten komputer”, kliknij <b>Więcej informacji → Uruchom mimo to</b>.">When “Windows protected your PC” appears, click <b>More info → Run anyway</b>.</p>
+        <h4>macOS</h4>
+        <p data-pl="Przeciągnij Hauntface do Aplikacji i spróbuj otworzyć. Jeśli macOS zablokuje aplikację, wejdź w <b>Ustawienia systemowe → Prywatność i ochrona</b> i kliknij <b>Otwórz mimo to</b>. Jeśli pisze, że aplikacja jest „uszkodzona”, uruchom w Terminalu:">Drag Hauntface into Applications and try to open it. If macOS blocks it, go to <b>System Settings → Privacy &amp; Security</b> and click <b>Open Anyway</b>. If it says the app is “damaged”, run this in Terminal:</p>
+        <pre><code>xattr -dr com.apple.quarantine /Applications/Hauntface.app</code></pre>
+        <h4>Linux</h4>
+        <p data-pl="AppImage trzeba oznaczyć jako wykonywalny:">The AppImage has to be marked executable:</p>
+        <pre><code>chmod +x Hauntface-linux-x86_64.AppImage
+./Hauntface-linux-x86_64.AppImage</code></pre>
+        <p data-pl="Albo zainstaluj paczkę .deb:">Or install the .deb:</p>
+        <pre><code>sudo apt install ./Hauntface-linux-amd64.deb</code></pre>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq" aria-labelledby="faqTitle">
+  <div class="wrap narrow">
+    <p class="kicker">FAQ</p>
+    <h2 id="faqTitle" class="h2" data-pl="Zakazane pytania">Forbidden questions</h2>
+    <div class="faq">
+      <details>
+        <summary data-pl="Czy to nagrywa ludzi?">Is it recording people?</summary>
+        <p data-pl="Nie. Klatki z kamerki są analizowane lokalnie w maleńkiej rozdzielczości 64×48 i od razu wyrzucane — tylko po to, żeby wiedzieć, gdzie ktoś stoi. W trybie chmurowym rozpoznana mowa i tekst rozmowy trafiają do dostawcy AI, którego <em>ty</em> wybrałeś (Anthropic albo NVIDIA). Hauntface niczego nie przechowuje.">No. Webcam frames are analysed locally at a tiny 64×48 and thrown away immediately — just enough to know where someone is standing. In cloud mode, the speech and conversation text go to the AI provider <em>you</em> chose (Anthropic or NVIDIA). Hauntface itself stores nothing.</p>
+      </details>
+      <details>
+        <summary data-pl="Ile to kosztuje?">How much does it cost?</summary>
+        <p data-pl="Aplikacja jest darmowa. AI działa na twoim własnym kluczu: Claude jest płatny za użycie — to grosze za cały wieczór. NVIDIA daje darmowy dostęp próbny z limitami zapytań. Tryb offline jest w drodze.">The app is free. The AI runs on your own key: Claude is pay-per-use — cents for a whole evening. NVIDIA offers free trial access with rate limits. An offline mode is coming.</p>
+      </details>
+      <details>
+        <summary data-pl="Czy potrzebuję klucza API?">Do I need an API key?</summary>
+        <p data-pl="Na razie tak — do Claude albo do NVIDIA. Klucz wklejasz w ustawieniach aplikacji. Gdy pojawi się tryb offline, nie będzie potrzebny.">For now, yes — for Claude or for NVIDIA. You paste it into the app's settings. Once offline mode lands, you won't need one.</p>
+      </details>
+      <details>
+        <summary data-pl="Jaki sprzęt jest potrzebny?">What hardware do I need?</summary>
+        <p data-pl="Dowolny komputer z ostatnich ~5 lat z grafiką obsługującą WebGL2, do tego ekran, kamerka, mikrofon i głośniki. Przy pierwszym uruchomieniu kompilują się shadery 3D — na słabszych zintegrowanych grafikach może to potrwać 10–20 sekund.">Any computer from the last ~5 years with a GPU that can do WebGL2, plus a screen, webcam, mic and speakers. On first launch the 3D shaders compile, which can take 10–20 seconds on weak integrated GPUs.</p>
+      </details>
+      <details>
+        <summary data-pl="Czy to bezpieczne dla dzieci?">Is it safe for kids?</summary>
+        <p data-pl="Jest tryb rodzinny i ścisły prompt, który trzyma potwora w ryzach. Ale to wciąż AI — niech w pobliżu będzie dorosły.">There's a family mode and a strict prompt that keeps the monster in line. But it is still AI — keep an adult nearby.</p>
+      </details>
+      <details>
+        <summary data-pl="Dlaczego system mnie ostrzega?">Why does my OS warn me?</summary>
+        <p data-pl="Bo wersje nie są jeszcze podpisane certyfikatem. <a href='#download'>Instrukcja obejścia ostrzeżenia</a> jest przy pobieraniu.">Because the builds aren't code-signed yet. <a href="#download">How to get past the warning</a> is right next to the downloads.</p>
+      </details>
+      <details>
+        <summary data-pl="A na Raspberry Pi?">Raspberry Pi?</summary>
+        <p data-pl="Jeszcze nie.">Not yet.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="fog fog-foot" aria-hidden="true"><i></i><i></i></div>
+  <div class="wrap footer-inner">
+    <p class="wordmark foot-mark">HAUNTFACE</p>
+    <p class="foot-line" data-pl="Stworzone na noc 31 października.">Made for the night of 31 October.</p>
+    <p class="souls"><span data-pl="Dusze zebrane tej nocy:">Souls collected tonight:</span> <b id="souls">0</b></p>
+    <ul class="foot-links">
+      <li><a href="https://github.com/bartoszkolo/hauntface">GitHub</a></li>
+      <li><a href="https://github.com/bartoszkolo/hauntface/blob/main/LICENSE" data-pl="Licencja MIT">MIT licence</a></li>
+      <li><a href="https://stagelight.cc" data-pl="Od twórcy Stagelight">From the maker of Stagelight</a></li>
+      <li><button class="linklike" id="calmLink" type="button" data-pl="Tryb spokojny (bez błysków)">Calm mode (no flashes)</button></li>
+    </ul>
+  </div>
+</footer>
+</body>
+</html>
