@@ -18,8 +18,40 @@
     throw err;
   }
 
-  // o: { provider: 'nvidia'|'anthropic', model, system, messages }
+  const post = (url, key, body, signal) => fetch(url, {
+    method: 'POST', signal, headers: { 'content-type': 'application/json', Authorization: 'Bearer ' + key }, body: JSON.stringify(body),
+  });
+  // Szybkie modele czatu OpenAI w kolejności preferencji (nazwy modeli się zmieniają — wybieramy z tego, co konto ma)
+  const OPENAI_PREFERRED = ['gpt-4.1-mini', 'gpt-4o-mini', 'gpt-5-mini', 'gpt-5-nano', 'gpt-4.1-nano'];
+  async function pickOpenAIModel(key, signal) {
+    const r = await fetch('https://api.openai.com/v1/models', { signal, headers: { Authorization: 'Bearer ' + key } });
+    if (!r.ok) await failWith(r, 'OpenAI');
+    const ids = ((await r.json()).data || []).map(m => m.id);
+    return OPENAI_PREFERRED.find(id => ids.includes(id))
+      || ids.find(id => /^gpt-/.test(id) && !/audio|realtime|search|transcribe|tts|image|codex/.test(id))
+      || 'gpt-4o-mini';
+  }
+  async function chatOpenAI(o, ctx) {
+    const key = ctx.key('openai');
+    if (!key) throw Object.assign(new Error('NO_KEY'), { code: 'NO_KEY' });
+    const body = model => ({
+      model, messages: [{ role: 'system', content: o.system }, ...o.messages], max_completion_tokens: 400,
+      ...(/^(gpt-5|o\d)/.test(model) ? { reasoning_effort: 'minimal' } : {}), // modele rozumujące: bez długiego myślenia
+    });
+    let model = o.model || OPENAI_PREFERRED[0];
+    let r = await post('https://api.openai.com/v1/chat/completions', key, body(model), ctx.signal);
+    if (r.status === 404 || r.status === 400) { // model niedostępny na tym koncie — dobierz inny i spróbuj raz jeszcze
+      const err = await r.clone().text();
+      if (/model/i.test(err)) { model = await pickOpenAIModel(key, ctx.signal); r = await post('https://api.openai.com/v1/chat/completions', key, body(model), ctx.signal); }
+    }
+    if (!r.ok) await failWith(r, 'OpenAI');
+    const msg = (await r.json()).choices?.[0]?.message || {};
+    return { text: clean(msg.content), model, refusal: !!msg.refusal && !msg.content };
+  }
+
+  // o: { provider: 'openai'|'nvidia'|'anthropic', model, system, messages }
   async function chat(o, ctx) {
+    if (o.provider === 'openai') return chatOpenAI(o, ctx);
     if (o.provider === 'nvidia') {
       const key = ctx.key('nvidia');
       if (!key && !ctx.browser) throw Object.assign(new Error('NO_KEY'), { code: 'NO_KEY' });

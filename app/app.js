@@ -9,7 +9,7 @@ const DEFAULTS = {
   look: 'reaper', theme: 'fire', ambient: 0.7, candle: 1.2, quality: '0.75', volume: 0.9,
   ambientSound: true, servo: true, auto: true, doze: true, camera: false, camInvert: false, bell: true, riddles: true, family: false,
   stt: 'whisper', whisperUrl: 'https://api.openai.com/v1/audio/transcriptions', whisperModel: 'whisper-1', threshold: 0.03,
-  llm: 'nvidia', nvidiaModel: 'nvidia/nemotron-3.5-lightning-30b-a3b', model: 'claude-opus-5-5',
+  llm: 'openai', openaiModel: 'gpt-4.1-mini', nvidiaModel: 'nvidia/nemotron-3.5-lightning-30b-a3b', model: 'claude-opus-5-5', autoThreshold: true,
   persona: '', personaWitch: '', // puste = domyślna osobowość dla wybranego języka
   tts: 'openai', voice: 'onyx', voiceWitch: 'shimmer', pitch: 0.85,
   remote: false, aiOn: true,
@@ -17,7 +17,7 @@ const DEFAULTS = {
 // dozwolone wartości pól wyboru — chroni przed zepsutymi/starymi ustawieniami
 const CHOICES = {
   lang: LANGS, look: ['reaper', 'skull', 'witch'], theme: ['fire', 'ghost', 'ice', 'blood', 'void'], quality: ['0.5', '0.75', '1'],
-  stt: ['whisper', 'webspeech'], llm: ['nvidia', 'anthropic'], model: ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'], tts: ['openai', 'browser'],
+  stt: ['whisper', 'webspeech'], llm: ['openai', 'anthropic', 'nvidia'], model: ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'], tts: ['openai', 'browser'],
 };
 const STORE = 'hauntface-config';
 const cfg = { ...DEFAULTS };
@@ -506,6 +506,7 @@ function frame(now) {
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   fpsShow = fpsShow * .95 + (1 / Math.max(dt, .001)) * .05;
   update(dt); draw(now / 1000); adaptQuality(dt);
+  if (document.body.classList.contains('ui')) updateMeter();
   if (!document.body.classList.contains('nodebug') || S.lastText.startsWith('⚠')) document.getElementById('status').textContent =
     `mode: ${S.mode}${S.dozing ? ' (dozing)' : ''}  fps: ${fpsShow.toFixed(0)}  render: ${(renderScale * 100).toFixed(0)}%  mic: ${S.micOn ? 'ON' : 'off'}  level: ${S.level.toFixed(3)} / ${cfg.threshold}  camera: ${cam.active ? cam.amount.toFixed(3) : 'off'}\n` +
     `souls tonight: ${visitors}  last: ${S.lastText.slice(0, 140)}`;
@@ -783,11 +784,13 @@ const Keys = {
   },
 };
 function renderKeyFields() {
-  for (const n of KEY_NAMES) {
-    const e = document.getElementById('key-' + n);
-    e.value = ''; e.placeholder = Keys.status[n] ? tx().ui.keySaved : (n === 'nvidia' ? 'nvapi-…' : n === 'anthropic' ? 'sk-ant-…' : 'sk-…');
-  }
-  document.getElementById('keys-note').textContent = DESKTOP ? tx().ui.keyDesktop : tx().ui.keyBrowser;
+  const ui = tx().ui, p = cfg.llm, ph = { openai: 'sk-…', anthropic: 'sk-ant-…', nvidia: 'nvapi-…' };
+  document.getElementById('key-main-label').textContent = ui['key_' + p];
+  const main = document.getElementById('key-main'); main.value = ''; main.placeholder = Keys.status[p] ? ui.keySaved : ph[p];
+  const extra = document.getElementById('key-openai-extra'); extra.value = ''; extra.placeholder = Keys.status.openai ? ui.keySaved : ph.openai;
+  document.getElementById('openai-extra').hidden = p === 'openai';
+  document.getElementById('keys-note').textContent = (p === 'openai' ? ui.oneKey : ui.needOpenai) + ' ' + (DESKTOP ? ui.keyDesktop : ui.keyBrowser);
+  updateLights();
 }
 
 // =====================================================================
@@ -883,6 +886,33 @@ function shortReply(s) { // najwyżej 3 zdania / ~260 znaków — dzieci nie bę
   for (const p of parts.slice(0, 3)) { if (out && (out + p).length > 260) break; out += p; }
   return out.trim();
 }
+const brainModel = () => cfg.llm === 'nvidia' ? cfg.nvidiaModel : cfg.llm === 'openai' ? cfg.openaiModel : cfg.model;
+function rememberModel(r) { if (r && r.model && cfg.llm === 'openai' && r.model !== cfg.openaiModel) { cfg.openaiModel = r.model; saveCfg(); loadForm(); } }
+// modele lubią dopisywać narrację i dialogi — bierzemy tylko pierwszy akapit wypowiedzi
+const firstParagraph = s => (s.split(/\n\s*\n/).map(p => p.trim()).find(p => p.replace(/[\s.…]/g, '').length > 1) || s).replace(/^[—–-]\s*/, '');
+function updateLights() {
+  const ui = tx().ui, brainOk = hasKey(cfg.llm), earsOk = !HauntProviders.isOpenAI(cfg.whisperUrl) || hasKey('openai') || cfg.stt === 'webspeech';
+  const voiceOk = hasKey('openai') && cfg.tts === 'openai';
+  const set = (id, cls, text) => { const e = document.getElementById(id); e.className = cls; e.textContent = text; };
+  set('st-brain', brainOk ? 'ok' : 'bad', '🧠 ' + (brainOk ? ui.lightBrainOk : ui.lightBrainBad));
+  set('st-ears', earsOk ? 'ok' : 'bad', '👂 ' + (earsOk ? ui.lightEarsOk : ui.lightEarsBad));
+  set('st-voice', voiceOk ? 'ok' : 'meh', '🗣 ' + (voiceOk ? ui.lightVoiceOk : ui.lightVoiceMeh));
+}
+function updateMeter() {
+  const bar = document.getElementById('meter-bar'), thr = document.getElementById('meter-thr');
+  bar.style.width = Math.min(100, S.level / 0.12 * 100) + '%';
+  thr.style.left = Math.min(100, cfg.threshold / 0.12 * 100) + '%';
+  bar.style.opacity = S.level > cfg.threshold ? 1 : .55;
+}
+// próg mikrofonu dopasowany do hałasu w pomieszczeniu (mierzone tuż po starcie, gdy nikt jeszcze nie mówi)
+async function calibrateMic() {
+  if (!cfg.autoThreshold || !micAnalyser) return;
+  const samples = [];
+  for (let i = 0; i < 30; i++) { await new Promise(r => setTimeout(r, 50)); samples.push(S.level); }
+  samples.sort((x, y) => x - y);
+  const noise = samples[Math.floor(samples.length * .6)] || 0.005;
+  cfg.threshold = Math.round(clamp(noise * 3.2, 0.012, 0.08) * 1000) / 1000; saveCfg(); loadForm();
+}
 function reportError(e) {
   console.error(e);
   S.lastText = '⚠ ' + (e.code === 'NO_KEY' ? tx().ui.noBrain : e.message);
@@ -910,7 +940,8 @@ async function respond(userText) {
   let reply = '', fromModel = true;
   try {
     const provider = cfg.llm;
-    const r = await brain({ provider, model: provider === 'nvidia' ? cfg.nvidiaModel : cfg.model, system: systemPrompt(), messages: history.slice() });
+    const r = await brain({ provider, model: brainModel(), system: systemPrompt(), messages: history.slice() });
+    rememberModel(r);
     reply = r.refusal ? lines().refusal : (r.text || pick(lines().laugh));
   } catch (e) { reportError(e); reply = pick(lines().offline); fromModel = false; }
   waiting = false;
@@ -921,7 +952,7 @@ async function respond(userText) {
   const tags = tx().tags;
   let spoken = reply.replace(/\[([^\]]+)\]/g, (_, tag) => { effect ||= tags[tag.trim().toLowerCase()] || L.pl.tags[tag.trim().toLowerCase()]; return ' '; })
     .replace(/[*_#>`~"„”]/g, '').trim();
-  spoken = shortReply(spoken);
+  spoken = shortReply(firstParagraph(spoken));
   if (effect && (repliesSinceFx < 2 || (cfg.family && FAMILY_BLOCKED.has(effect)))) effect = null; // efekty najwyżej co trzecią odpowiedź
   repliesSinceFx = effect ? 0 : repliesSinceFx + 1;
   S.lastText = '💀 ' + reply;
@@ -1014,7 +1045,7 @@ async function speakOpenAI(text) {
 //  INTERFEJS
 // =====================================================================
 const FIELDS = ['lang', 'look', 'theme', 'quality', 'ambient', 'candle', 'volume', 'family', 'ambientSound', 'servo', 'auto', 'doze', 'camera', 'camInvert',
-  'bell', 'riddles', 'remote', 'aiOn', 'llm', 'nvidiaModel', 'model', 'persona', 'personaWitch', 'stt', 'whisperUrl', 'whisperModel', 'threshold', 'tts', 'voice', 'voiceWitch', 'pitch'];
+  'bell', 'riddles', 'remote', 'aiOn', 'llm', 'openaiModel', 'autoThreshold', 'nvidiaModel', 'model', 'persona', 'personaWitch', 'stt', 'whisperUrl', 'whisperModel', 'threshold', 'tts', 'voice', 'voiceWitch', 'pitch'];
 const el = k => document.getElementById('cfg-' + k);
 function applyI18n() {
   const ui = tx().ui;
@@ -1049,7 +1080,9 @@ async function readForm() {
   if (cfg.persona.trim() === L[was.lang].persona.skull.trim() || cfg.persona.trim() === tx().persona.skull.trim()) cfg.persona = '';
   if (cfg.personaWitch.trim() === L[was.lang].persona.witch.trim() || cfg.personaWitch.trim() === tx().persona.witch.trim()) cfg.personaWitch = '';
   validateCfg(); saveCfg(); buildSprites();
-  for (const n of KEY_NAMES) { const v = document.getElementById('key-' + n).value.trim(); if (v) await Keys.set(n, v); }
+  const mainKey = document.getElementById('key-main').value.trim(), extra = document.getElementById('key-openai-extra').value.trim();
+  if (mainKey) await Keys.set(cfg.llm, mainKey);
+  if (extra && cfg.llm !== 'openai') await Keys.set('openai', extra);
   await Keys.refresh();
   if (cfg.quality !== was.quality) { renderScale = +cfg.quality; resizeGL(); }
   if (master) master.gain.value = +cfg.volume;
@@ -1066,19 +1099,41 @@ function toast(msg) {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => e.classList.remove('show'), 2200);
 }
 document.getElementById('save').onclick = () => readForm();
-document.getElementById('test').onclick = async () => {
-  await readForm(); const b = document.getElementById('test'); b.textContent = tx().ui.testing;
+// ---- testy z panelu: mózg, słuch, głos
+const result = msg => { document.getElementById('test-result').textContent = msg; };
+async function ensureAwake() { if (document.getElementById('start')) { document.getElementById('start').click(); await new Promise(r => setTimeout(r, 400)); } }
+async function busy(id, fn) {
+  const b = document.getElementById(id), label = b.textContent; b.textContent = tx().ui.testing; b.disabled = true;
+  try { await fn(); } catch (e) { reportError(e); result('⚠ ' + (e.code === 'NO_KEY' ? tx().ui.noKeyFor : e.message)); }
+  b.textContent = label; b.disabled = false; updateLights();
+}
+document.getElementById('test-brain').onclick = () => busy('test-brain', async () => {
+  await readForm(); const t0 = performance.now();
+  const r = await brain({ provider: cfg.llm, model: brainModel(), system: systemPrompt(),
+    messages: [{ role: 'user', content: cfg.lang === 'pl' ? 'Cześć! Kim jesteś?' : 'Hi! Who are you?' }] });
+  rememberModel(r);
+  const reply = shortReply(firstParagraph(r.text.replace(/\[[^\]]+\]/g, ' ')));
+  result(`🧠 ${((performance.now() - t0) / 1000).toFixed(1)} s${r.model ? ' · ' + r.model : ''} — ${reply}`);
+  await ensureAwake(); speak(reply);
+});
+document.getElementById('test-ears').onclick = () => busy('test-ears', async () => {
+  await readForm(); await ensureAwake();
+  if (!micStream) throw new Error(tx().ui.noMic);
+  result('🎙 ' + tx().ui.speakNow);
+  const chunks = [], r = new MediaRecorder(micStream, REC_MIME ? { mimeType: REC_MIME } : undefined);
+  r.ondataavailable = e => e.data.size && chunks.push(e.data);
+  const stopped = new Promise(res => { r.onstop = res; });
+  deafFor(5); r.start(250); await new Promise(res => setTimeout(res, 4000)); r.stop(); await stopped;
   const t0 = performance.now();
-  try {
-    const r = await brain({ provider: cfg.llm, model: cfg.llm === 'nvidia' ? cfg.nvidiaModel : cfg.model, system: systemPrompt(),
-      messages: [{ role: 'user', content: cfg.lang === 'pl' ? 'Przedstaw się jednym zdaniem.' : 'Introduce yourself in one sentence.' }] });
-    const reply = shortReply(r.text.replace(/\[[^\]]+\]/g, ''));
-    S.lastText = `💀 (${((performance.now() - t0) / 1000).toFixed(1)} s) ${reply}`; toast(`${((performance.now() - t0) / 1000).toFixed(1)} s`);
-    if (ac) speak(reply);
-  } catch (e) { reportError(e); toast(S.lastText); }
-  b.textContent = tx().ui.test;
-};
-['theme', 'ambient', 'candle', 'quality', 'volume', 'look', 'lang', 'family'].forEach(k => el(k).addEventListener('change', () => readForm()));
+  const text = await ears({ blob: new Blob(chunks, { type: r.mimeType || 'audio/webm' }), url: cfg.whisperUrl, model: cfg.whisperModel, lang: tx().stt });
+  result(`👂 ${((performance.now() - t0) / 1000).toFixed(1)} s — "${text || '…'}"${text ? '' : ' ' + tx().ui.heardNothing}`);
+});
+document.getElementById('test-voice').onclick = () => busy('test-voice', async () => {
+  await readForm(); await ensureAwake();
+  result('🗣 ' + (cfg.tts === 'openai' && hasKey('openai') ? 'OpenAI TTS' : tx().ui.systemVoice));
+  await speak(pick(lines().greet));
+});
+['theme', 'ambient', 'candle', 'quality', 'volume', 'look', 'lang', 'family', 'llm', 'tts', 'stt'].forEach(k => el(k).addEventListener('change', () => readForm()));
 document.getElementById('say').onkeydown = e => {
   if (e.key === 'Enter' && e.target.value.trim()) { const s = e.target.value.trim(); e.target.value = ''; S.lastText = '💀 ' + s; speak(s); }
 };
@@ -1143,7 +1198,8 @@ document.getElementById('start').onclick = async () => {
   document.getElementById('start').remove();
   initSound();
   try { await initMic(); } catch (e) { S.lastText = '⚠ Mic: ' + e.message; }
-  setMode('idle'); S.flare = 1.2; whoosh(); boneCrack();
+  setMode('idle');
+  setTimeout(calibrateMic, 300); S.flare = 1.2; whoosh(); boneCrack();
   vadLoop();
   if (cfg.stt === 'webspeech') startWebSpeech();
   if (cfg.camera) startCamera();

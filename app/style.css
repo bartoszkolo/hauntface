@@ -40,3 +40,12 @@
 #demo-banner a { color: #ff7a2a; background: #000a; padding: 6px 10px; border-radius: 4px; text-decoration: none; }
 #remote-img { display: block; margin: 10px 0 4px; background: #fff; border-radius: 8px; padding: 6px; image-rendering: pixelated; }
 #remote-url { word-break: break-all; user-select: all; }
+#panel details { margin-top: 16px; border-top: 1px solid #2c2430; padding-top: 10px; }
+#panel summary { cursor: pointer; color: #ff7a2a; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+#panel .status-lights { display: grid; gap: 4px; margin: 10px 0 2px; font-size: 13px; }
+#panel .status-lights .ok { color: #7fe08f; } #panel .status-lights .bad { color: #ff8a6a; } #panel .status-lights .meh { color: #e8c76a; }
+#panel .meter { position: relative; height: 10px; background: #000; border: 1px solid #3a3040; border-radius: 5px; overflow: hidden; }
+#meter-bar { position: absolute; inset: 0 auto 0 0; width: 0; background: linear-gradient(90deg, #3cdc6c, #ffc23a, #ff4a12); }
+#meter-thr { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; }
+#panel .actions { flex-wrap: wrap; } #panel .actions button { flex: 1 1 auto; }
+#panel .result { color: #ffd8b8; min-height: 1.4em; }

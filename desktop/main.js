@@ -55,7 +55,7 @@ ipcMain.handle("hf:keys-status", () => Object.fromEntries(KEY_NAMES.map(n => [n,
 ipcMain.handle("hf:keys-set", (_e, name, value) => { setKey(name, value); return true; });
 ipcMain.handle("hf:chat", async (_e, o) => {
   try {
-    if (!["nvidia", "anthropic"].includes(o.provider)) throw new Error("bad provider");
+    if (!["openai", "nvidia", "anthropic"].includes(o.provider)) throw new Error("bad provider");
     return await core.chat({ provider: o.provider, model: String(o.model), system: String(o.system), messages: o.messages }, ctx(20000));
   } catch (e) { throw clean(e); }
 });

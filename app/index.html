@@ -17,6 +17,31 @@
 <div id="panel">
   <h2 data-i18n="settings"></h2>
 
+  <h3 data-i18n="setup"></h3>
+  <label data-i18n="provider"></label>
+  <select id="cfg-llm">
+    <option value="openai" data-i18n="pOpenai"></option>
+    <option value="anthropic" data-i18n="pAnthropic"></option>
+    <option value="nvidia" data-i18n="pNvidia"></option>
+  </select>
+  <label id="key-main-label"></label><input id="key-main" type="password" autocomplete="off">
+  <div id="openai-extra">
+    <label data-i18n="keyOpenaiExtra"></label><input id="key-openai-extra" type="password" autocomplete="off">
+  </div>
+  <p class="note" id="keys-note"></p>
+  <div class="status-lights">
+    <div id="st-brain"></div><div id="st-ears"></div><div id="st-voice"></div>
+  </div>
+  <label data-i18n="micLevel"></label>
+  <div class="meter"><div id="meter-bar"></div><div id="meter-thr"></div></div>
+  <div class="actions">
+    <button id="save" data-i18n="save"></button>
+    <button id="test-brain" class="ghost" data-i18n="testBrain"></button>
+    <button id="test-ears" class="ghost" data-i18n="testEars"></button>
+    <button id="test-voice" class="ghost" data-i18n="testVoice"></button>
+  </div>
+  <p class="note result" id="test-result"></p>
+
   <h3 data-i18n="look"></h3>
   <div class="row">
     <div><label data-i18n="character"></label><select id="cfg-look">
@@ -65,20 +90,15 @@
   </div>
   <p class="note" id="remote-browser" data-i18n="remoteBrowser" hidden></p>
 
-  <h3 data-i18n="keys"></h3>
-  <p class="note" id="keys-note"></p>
-  <label data-i18n="keyNvidia"></label><input id="key-nvidia" type="password" autocomplete="off">
-  <label data-i18n="keyAnthropic"></label><input id="key-anthropic" type="password" autocomplete="off">
-  <label data-i18n="keyOpenai"></label><input id="key-openai" type="password" autocomplete="off">
-
+  <details id="advanced">
+  <summary data-i18n="advanced"></summary>
   <h3 data-i18n="brain"></h3>
-  <label data-i18n="provider"></label>
-  <select id="cfg-llm"><option value="nvidia" data-i18n="nvidia"></option><option value="anthropic" data-i18n="anthropic"></option></select>
   <div class="row">
-    <div><label data-i18n="nvidiaModel"></label><input id="cfg-nvidiaModel"></div>
+    <div><label data-i18n="openaiModel"></label><input id="cfg-openaiModel"></div>
     <div><label data-i18n="claudeModel"></label><select id="cfg-model">
       <option value="claude-opus-5-5">claude-opus-5-5</option><option value="claude-sonnet-5-5">claude-sonnet-5-5</option><option value="claude-haiku-5-5">claude-haiku-5-5</option></select></div>
   </div>
+  <label data-i18n="nvidiaModel"></label><input id="cfg-nvidiaModel">
   <label data-i18n="personaSkull"></label><textarea id="cfg-persona"></textarea>
   <label data-i18n="personaWitch"></label><textarea id="cfg-personaWitch"></textarea>
 
@@ -89,6 +109,7 @@
     <div><label data-i18n="whisperModel"></label><input id="cfg-whisperModel"></div>
     <div><label data-i18n="threshold"></label><input id="cfg-threshold" type="number" step="0.005" min="0.005"></div>
   </div>
+  <label class="check"><input id="cfg-autoThreshold" type="checkbox"> <span data-i18n="autoThreshold"></span></label>
 
   <h3 data-i18n="voice"></h3>
   <select id="cfg-tts"><option value="openai" data-i18n="ttsOpenai"></option><option value="browser" data-i18n="ttsBrowser"></option></select>
@@ -97,8 +118,8 @@
     <div><label data-i18n="voiceWitch"></label><input id="cfg-voiceWitch"></div>
     <div><label data-i18n="pitch"></label><input id="cfg-pitch" type="number" step="0.05" min="0.5" max="1.2"></div>
   </div>
+  </details>
 
-  <div class="actions"><button id="save" data-i18n="save"></button><button id="test" class="ghost" data-i18n="test"></button></div>
   <div class="keys" id="hotkeys"></div>
 </div>
 

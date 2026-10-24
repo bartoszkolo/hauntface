@@ -50,11 +50,13 @@ Intel Macs: run from source (below).
 
 1. Put a screen inside the prop: an old monitor or TV behind a hood or a mask works great. Add a webcam, a microphone and a speaker.
 2. Start Hauntface, press **H** for settings and pick a monster and a language.
-3. Give it a brain: paste an API key under **API keys**.
-   - **NVIDIA** (default): get a free trial key at [build.nvidia.com](https://build.nvidia.com). The default model `nvidia/nemotron-3.5-lightning-30b-a3b` answers in 1–2 s. It's a trial with rate limits, not a production service.
-   - **Anthropic Claude**: pay per use, a few cents per evening.
-   - **OpenAI** key: needed for listening (Whisper) and for the best voice. Without it the monster uses your system's voice and can't hear.
-4. Press **Test the brain**, then click the screen to wake the monster. **F** = fullscreen.
+3. Give it a brain: under **Brain, ears and voice** pick a provider and paste one key.
+   - **OpenAI** (recommended): one key does everything: the brain, listening (Whisper) and the creepy voice.
+   - **Anthropic Claude**: great in character; add an OpenAI key too, so the monster can hear and sound scary.
+   - **NVIDIA**: free trial key from [build.nvidia.com](https://build.nvidia.com), fast but weaker Polish; also add an OpenAI key for listening.
+
+   The three lights show what's ready (brain, ears, voice), and the mic meter shows the trigger level, which is matched to your room's noise at start.
+4. Press **Test brain**, **Test ears** and **Test voice**, then click the screen to wake the monster. **F** = fullscreen.
 
 The first launch compiles the 3D shaders, which takes 10–20 s on weak integrated GPUs ("Summoning the spirit…"). After that it starts instantly.
 
