@@ -11,13 +11,14 @@ const DEFAULTS = {
   stt: 'whisper', whisperUrl: 'https://api.openai.com/v1/audio/transcriptions', whisperModel: 'whisper-1', threshold: 0.03,
   llm: 'openai', openaiModel: 'gpt-4.1-mini', nvidiaModel: 'nvidia/nemotron-3.5-lightning-30b-a3b', model: 'claude-opus-5-5', autoThreshold: true,
   persona: '', personaWitch: '', // puste = domyślna osobowość dla wybranego języka
-  tts: 'openai', voice: 'onyx', voiceWitch: 'shimmer', pitch: 0.85,
+  tts: 'openai', voice: 'onyx', voiceWitch: 'shimmer', pitch: 0.85, fxAmount: 1, elModel: 'eleven_multilingual_v2',
+  elVoice: 'N2lVS1w4EtoT3dr4eOWO', elVoiceName: 'Callum', elVoiceWitch: 'pFZP5JQG7iQjIQuC4Bku', elVoiceWitchName: 'Lily', // gotowe głosy ElevenLabs
   remote: false, aiOn: true,
 };
 // dozwolone wartości pól wyboru — chroni przed zepsutymi/starymi ustawieniami
 const CHOICES = {
   lang: LANGS, look: ['reaper', 'skull', 'witch'], theme: ['fire', 'ghost', 'ice', 'blood', 'void'], quality: ['0.5', '0.75', '1'],
-  stt: ['whisper', 'webspeech'], llm: ['openai', 'anthropic', 'nvidia'], model: ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'], tts: ['openai', 'browser'],
+  stt: ['whisper', 'webspeech'], llm: ['openai', 'anthropic', 'nvidia'], model: ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'], tts: ['openai', 'elevenlabs', 'browser'],
 };
 const STORE = 'hauntface-config';
 const cfg = { ...DEFAULTS };
@@ -770,7 +771,7 @@ function greet() {
 // =====================================================================
 //  KLUCZE API — w aplikacji: szyfrowane w procesie głównym; w przeglądarce: localStorage
 // =====================================================================
-const KEY_NAMES = ['nvidia', 'anthropic', 'openai'];
+const KEY_NAMES = ['nvidia', 'anthropic', 'openai', 'elevenlabs'];
 const browserKeys = () => { try { return JSON.parse(localStorage.getItem('hauntface-keys') || '{}'); } catch { return {}; } };
 const Keys = {
   status: {},
@@ -789,6 +790,9 @@ function renderKeyFields() {
   const main = document.getElementById('key-main'); main.value = ''; main.placeholder = Keys.status[p] ? ui.keySaved : ph[p];
   const extra = document.getElementById('key-openai-extra'); extra.value = ''; extra.placeholder = Keys.status.openai ? ui.keySaved : ph.openai;
   document.getElementById('openai-extra').hidden = p === 'openai';
+  const elk = document.getElementById('key-elevenlabs'); elk.value = ''; elk.placeholder = Keys.status.elevenlabs ? ui.keySaved : 'sk_…';
+  document.getElementById('el-box').hidden = cfg.tts !== 'elevenlabs';
+  document.getElementById('el-current').textContent = `${ui.elFor[charKey()]}: ${isWitch() ? cfg.elVoiceWitchName : cfg.elVoiceName}`;
   document.getElementById('keys-note').textContent = (p === 'openai' ? ui.oneKey : ui.needOpenai) + ' ' + (DESKTOP ? ui.keyDesktop : ui.keyBrowser);
   updateLights();
 }
@@ -892,11 +896,12 @@ function rememberModel(r) { if (r && r.model && cfg.llm === 'openai' && r.model 
 const firstParagraph = s => (s.split(/\n\s*\n/).map(p => p.trim()).find(p => p.replace(/[\s.…]/g, '').length > 1) || s).replace(/^[—–-]\s*/, '');
 function updateLights() {
   const ui = tx().ui, brainOk = hasKey(cfg.llm), earsOk = !HauntProviders.isOpenAI(cfg.whisperUrl) || hasKey('openai') || cfg.stt === 'webspeech';
-  const voiceOk = hasKey('openai') && cfg.tts === 'openai';
+  const elOk = cfg.tts === 'elevenlabs' && hasKey('elevenlabs');
+  const voiceOk = elOk || (cfg.tts !== 'browser' && hasKey('openai'));
   const set = (id, cls, text) => { const e = document.getElementById(id); e.className = cls; e.textContent = text; };
   set('st-brain', brainOk ? 'ok' : 'bad', '🧠 ' + (brainOk ? ui.lightBrainOk : ui.lightBrainBad));
   set('st-ears', earsOk ? 'ok' : 'bad', '👂 ' + (earsOk ? ui.lightEarsOk : ui.lightEarsBad));
-  set('st-voice', voiceOk ? 'ok' : 'meh', '🗣 ' + (voiceOk ? ui.lightVoiceOk : ui.lightVoiceMeh));
+  set('st-voice', voiceOk ? 'ok' : 'meh', '🗣 ' + (elOk ? ui.lightVoiceEl : cfg.tts === 'elevenlabs' ? ui.lightVoiceNoEl : voiceOk ? ui.lightVoiceOk : ui.lightVoiceMeh));
 }
 function updateMeter() {
   const bar = document.getElementById('meter-bar'), thr = document.getElementById('meter-thr');
@@ -991,7 +996,8 @@ function speak(text, opts = {}) {
     const prev = S.mode; setMode('speaking');
     if (rec) try { rec.abort(); } catch {}
     try {
-      if (cfg.tts === 'openai' && hasKey('openai') && ac) await speakOpenAI(text);
+      if (cfg.tts === 'elevenlabs' && hasKey('elevenlabs') && ac) await speakCloud(text, 'elevenlabs');
+      else if ((cfg.tts === 'openai' || cfg.tts === 'elevenlabs') && hasKey('openai') && ac) await speakCloud(text, 'openai');
       else await speakBrowser(text);
     } catch (e) { reportError(e); await speakBrowser(text).catch(() => {}); }
     deafFor(.7); speaking = false; stopCurrent = null;
@@ -1016,20 +1022,23 @@ function speakBrowser(text) {
     speechSynthesis.cancel(); speechSynthesis.speak(u);
   });
 }
-async function speakOpenAI(text) {
-  const mp3 = await mouthTTS({ text, voice: isWitch() ? cfg.voiceWitch : cfg.voice, instructions: tx().tts[charKey()] });
+async function speakCloud(text, engine) {
+  const mp3 = await mouthTTS(engine === 'elevenlabs'
+    ? { engine, text, voice: isWitch() ? cfg.elVoiceWitch : cfg.elVoice, model: cfg.elModel }
+    : { engine, text, voice: isWitch() ? cfg.voiceWitch : cfg.voice, instructions: tx().tts[charKey()] });
+  const fxA = clamp(+cfg.fxAmount, 0, 1);
   const buf = await ac.decodeAudioData(mp3);
   if (ac.state === 'suspended') await ac.resume().catch(() => {});
   const witch = isWitch();
-  const src = ac.createBufferSource(); src.buffer = buf; src.playbackRate.value = witch ? 1 : (+cfg.pitch || .85);
-  const sh = ac.createWaveShaper(); sh.curve = distCurve(1.8);
-  const low = filt('lowshelf', 220); low.gain.value = 9;
+  const src = ac.createBufferSource(); src.buffer = buf; src.playbackRate.value = witch ? 1 : 1 - (1 - (+cfg.pitch || .85)) * fxA;
+  const sh = ac.createWaveShaper(); sh.curve = distCurve(1 + .8 * fxA);
+  const low = filt('lowshelf', 220); low.gain.value = 9 * fxA;
   const ring = ac.createGain(); ring.gain.value = 0; const rm = osc('sine', 34); rm.connect(ring.gain); rm.start();
-  const ringMix = ac.createGain(); ringMix.gain.value = witch ? .12 : .45;
+  const ringMix = ac.createGain(); ringMix.gain.value = (witch ? .12 : .45) * fxA;
   const an = ac.createAnalyser(); an.fftSize = 512; ttsBuf = new Float32Array(512); ttsAnalyser = an;
   src.connect(sh).connect(low);
   low.connect(ring).connect(ringMix);           // modulacja pierścieniowa = demoniczny pomruk
-  out(low, .45); out(ringMix, .3);
+  out(low, .15 + .3 * fxA); out(ringMix, .3);
   low.connect(an);
   await new Promise(res => {
     const guard = setTimeout(res, (buf.duration / src.playbackRate.value) * 1000 + 2000); // gdy onended nie przyjdzie
@@ -1045,7 +1054,7 @@ async function speakOpenAI(text) {
 //  INTERFEJS
 // =====================================================================
 const FIELDS = ['lang', 'look', 'theme', 'quality', 'ambient', 'candle', 'volume', 'family', 'ambientSound', 'servo', 'auto', 'doze', 'camera', 'camInvert',
-  'bell', 'riddles', 'remote', 'aiOn', 'llm', 'openaiModel', 'autoThreshold', 'nvidiaModel', 'model', 'persona', 'personaWitch', 'stt', 'whisperUrl', 'whisperModel', 'threshold', 'tts', 'voice', 'voiceWitch', 'pitch'];
+  'bell', 'riddles', 'remote', 'aiOn', 'llm', 'openaiModel', 'autoThreshold', 'nvidiaModel', 'model', 'persona', 'personaWitch', 'stt', 'whisperUrl', 'whisperModel', 'threshold', 'tts', 'voice', 'voiceWitch', 'pitch', 'elModel', 'fxAmount'];
 const el = k => document.getElementById('cfg-' + k);
 function applyI18n() {
   const ui = tx().ui;
@@ -1083,6 +1092,7 @@ async function readForm() {
   const mainKey = document.getElementById('key-main').value.trim(), extra = document.getElementById('key-openai-extra').value.trim();
   if (mainKey) await Keys.set(cfg.llm, mainKey);
   if (extra && cfg.llm !== 'openai') await Keys.set('openai', extra);
+  const elk = document.getElementById('key-elevenlabs').value.trim(); if (elk) await Keys.set('elevenlabs', elk);
   await Keys.refresh();
   if (cfg.quality !== was.quality) { renderScale = +cfg.quality; resizeGL(); }
   if (master) master.gain.value = +cfg.volume;
@@ -1128,9 +1138,52 @@ document.getElementById('test-ears').onclick = () => busy('test-ears', async () 
   const text = await ears({ blob: new Blob(chunks, { type: r.mimeType || 'audio/webm' }), url: cfg.whisperUrl, model: cfg.whisperModel, lang: tx().stt });
   result(`👂 ${((performance.now() - t0) / 1000).toFixed(1)} s — "${text || '…'}"${text ? '' : ' ' + tx().ui.heardNothing}`);
 });
+// ---- wybór głosu ElevenLabs (osobny dla czaszki i wiedźmy)
+const elCall = o => withTimeout(DESKTOP ? DESKTOP.eleven(o) : HauntProviders.eleven(o, browserCtx(15000)), 16000);
+let elPreview = null;
+function elList(voices, msg) {
+  const ul = document.getElementById('el-results'); ul.textContent = '';
+  if (msg || !voices.length) { const li = document.createElement('li'); li.className = 'msg'; li.textContent = msg || tx().ui.elNone; ul.appendChild(li); return; }
+  for (const v of voices) {
+    const li = document.createElement('li'), info = document.createElement('div');
+    info.textContent = v.name; const small = document.createElement('small'); small.textContent = v.info; info.appendChild(small);
+    li.appendChild(info);
+    if (v.preview) { const play = document.createElement('button'); play.className = 'ghost'; play.textContent = '▶';
+      play.onclick = () => { elPreview?.pause(); elPreview = new Audio(v.preview); elPreview.play().catch(() => {}); }; li.appendChild(play); }
+    const use = document.createElement('button'); use.textContent = tx().ui.elUse;
+    use.onclick = async () => {
+      use.textContent = '…';
+      try {
+        const id = v.owner ? await elCall({ op: 'add', owner: v.owner, id: v.id, name: v.name }) : v.id; // z biblioteki: dodaj do konta
+        const name = v.name.split(' - ')[0].slice(0, 40);
+        if (isWitch()) { cfg.elVoiceWitch = id; cfg.elVoiceWitchName = name; } else { cfg.elVoice = id; cfg.elVoiceName = name; }
+        saveCfg(); renderKeyFields(); result('🗣 ' + name);
+        await ensureAwake(); speak(pick(lines().greet));
+      } catch (e) { reportError(e); result('⚠ ' + (e.code === 'NO_KEY' ? tx().ui.noKeyFor : e.message)); }
+      use.textContent = tx().ui.elUse;
+    };
+    li.appendChild(use); ul.appendChild(li);
+  }
+}
+async function elFind(op) {
+  await readForm();
+  if (!hasKey('elevenlabs')) { elList([], tx().ui.noKeyFor); return; }
+  elList([], tx().ui.elSearching);
+  try { elList(await elCall({ op, query: document.getElementById('el-query').value.trim() })); }
+  catch (e) { reportError(e); elList([], '⚠ ' + e.message); }
+}
+document.getElementById('el-open').onclick = () => {
+  const p = document.getElementById('el-picker'); p.hidden = !p.hidden;
+  const q = document.getElementById('el-query'); q.placeholder = tx().ui.elHint;
+  if (!q.value) q.value = isWitch() ? 'witch' : 'demon';
+  if (!p.hidden) elFind('search');
+};
+document.getElementById('el-search').onclick = () => elFind('search');
+document.getElementById('el-mine').onclick = () => elFind('mine');
+document.getElementById('el-query').onkeydown = e => { if (e.key === 'Enter') elFind('search'); };
 document.getElementById('test-voice').onclick = () => busy('test-voice', async () => {
   await readForm(); await ensureAwake();
-  result('🗣 ' + (cfg.tts === 'openai' && hasKey('openai') ? 'OpenAI TTS' : tx().ui.systemVoice));
+  result('🗣 ' + (cfg.tts === 'elevenlabs' && hasKey('elevenlabs') ? 'ElevenLabs · ' + (isWitch() ? cfg.elVoiceWitchName : cfg.elVoiceName) : cfg.tts !== 'browser' && hasKey('openai') ? 'OpenAI TTS' : tx().ui.systemVoice));
   await speak(pick(lines().greet));
 });
 ['theme', 'ambient', 'candle', 'quality', 'volume', 'look', 'lang', 'family', 'llm', 'tts', 'stt'].forEach(k => el(k).addEventListener('change', () => readForm()));

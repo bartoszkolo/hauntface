@@ -28,6 +28,16 @@
   <div id="openai-extra">
     <label data-i18n="keyOpenaiExtra"></label><input id="key-openai-extra" type="password" autocomplete="off">
   </div>
+  <label data-i18n="voice"></label>
+  <select id="cfg-tts"><option value="elevenlabs" data-i18n="ttsEleven"></option><option value="openai" data-i18n="ttsOpenai"></option><option value="browser" data-i18n="ttsBrowser"></option></select>
+  <div id="el-box">
+    <label data-i18n="keyEleven"></label><input id="key-elevenlabs" type="password" autocomplete="off">
+    <div class="el-current"><span id="el-current"></span><button class="ghost" id="el-open" data-i18n="elPick"></button></div>
+    <div id="el-picker" hidden>
+      <div class="row el-search"><input id="el-query"><button class="ghost" id="el-search" data-i18n="elSearch"></button><button class="ghost" id="el-mine" data-i18n="elMine"></button></div>
+      <ul id="el-results"></ul>
+    </div>
+  </div>
   <p class="note" id="keys-note"></p>
   <div class="status-lights">
     <div id="st-brain"></div><div id="st-ears"></div><div id="st-voice"></div>
@@ -112,7 +122,10 @@
   <label class="check"><input id="cfg-autoThreshold" type="checkbox"> <span data-i18n="autoThreshold"></span></label>
 
   <h3 data-i18n="voice"></h3>
-  <select id="cfg-tts"><option value="openai" data-i18n="ttsOpenai"></option><option value="browser" data-i18n="ttsBrowser"></option></select>
+  <div class="row">
+    <div><label data-i18n="elModel"></label><input id="cfg-elModel"></div>
+    <div><label data-i18n="fxAmount"></label><input id="cfg-fxAmount" type="range" min="0" max="1" step="0.05"></div>
+  </div>
   <div class="row">
     <div><label data-i18n="voiceSkull"></label><input id="cfg-voice"></div>
     <div><label data-i18n="voiceWitch"></label><input id="cfg-voiceWitch"></div>

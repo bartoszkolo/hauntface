@@ -11,7 +11,7 @@ const isMac = process.platform === "darwin";
 const APP_DIR = app.isPackaged ? path.join(process.resourcesPath, "app") : path.join(__dirname, "..", "app");
 const ICON = path.join(__dirname, "build", process.platform === "win32" ? "icon.ico" : "icon.png");
 const core = require(path.join(APP_DIR, "providers-core.js"));
-const KEY_NAMES = ["nvidia", "anthropic", "openai"];
+const KEY_NAMES = ["nvidia", "anthropic", "openai", "elevenlabs"];
 const SCHEME = "hauntface";
 
 // A real origin (hauntface://app) instead of file:// — stable localStorage, fetch works, CSP applies.
@@ -66,8 +66,17 @@ ipcMain.handle("hf:stt", async (_e, o) => {
   } catch (e) { throw clean(e); }
 });
 ipcMain.handle("hf:tts", async (_e, o) => {
-  try { return await core.speak({ text: String(o.text), voice: String(o.voice), instructions: String(o.instructions) }, ctx(15000)); }
+  try {
+    const engine = o.engine === "elevenlabs" ? "elevenlabs" : "openai";
+    return await core.speak({ engine, text: String(o.text), voice: String(o.voice), instructions: String(o.instructions || ""), model: o.model ? String(o.model) : "" }, ctx(20000));
+  }
   catch (e) { throw clean(e); }
+});
+ipcMain.handle("hf:el", async (_e, o) => {
+  try {
+    if (!["mine", "search", "add"].includes(o.op)) throw new Error("bad op");
+    return await core.eleven({ op: o.op, query: String(o.query || ""), owner: String(o.owner || ""), id: String(o.id || ""), name: String(o.name || "") }, ctx(15000));
+  } catch (e) { throw clean(e); }
 });
 ipcMain.on("hf:fullscreen", (_e, on) => win && win.setFullScreen(!!on));
 
@@ -95,7 +104,7 @@ function serveApp() {
     const res = await net.fetch(pathToFileURL(file).toString());
     const headers = new Headers(res.headers);
     headers.set("Content-Security-Policy",
-      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src 'self'");
+      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: mediastream: https:; connect-src 'self'");
     return new Response(res.body, { status: res.status, headers });
   });
 }

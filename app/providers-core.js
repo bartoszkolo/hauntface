@@ -108,8 +108,51 @@
     return ((await r.json()).text || '').trim();
   }
 
-  // o: { text, voice, instructions } -> ArrayBuffer (mp3)
+  // ---- ElevenLabs: najbardziej przekonujące straszne głosy (biblioteka społeczności)
+  const EL = 'https://api.elevenlabs.io/v1';
+  const elKey = ctx => { const k = ctx.key('elevenlabs'); if (!k) throw Object.assign(new Error('NO_KEY'), { code: 'NO_KEY' }); return k; };
+  async function elevenSpeak(o, ctx) {
+    const r = await fetch(`${EL}/text-to-speech/${encodeURIComponent(o.voice)}?output_format=mp3_44100_128`, {
+      method: 'POST', signal: ctx.signal,
+      headers: { 'content-type': 'application/json', 'xi-api-key': elKey(ctx) },
+      body: JSON.stringify({
+        text: o.text, model_id: o.model || 'eleven_multilingual_v2',
+        voice_settings: { stability: 0.35, similarity_boost: 0.8, style: 0.45, use_speaker_boost: true },
+      }),
+    });
+    if (!r.ok) await failWith(r, 'ElevenLabs');
+    return await r.arrayBuffer();
+  }
+  const pickVoice = v => ({ id: v.voice_id, owner: v.public_owner_id || '', name: v.name, preview: v.preview_url || '',
+    info: [v.gender || v.labels?.gender, v.age || v.labels?.age, v.descriptive || v.labels?.descriptive, v.language].filter(Boolean).join(' · ') });
+  // o: { op: 'mine' } | { op: 'search', query } | { op: 'add', owner, id, name }
+  async function eleven(o, ctx) {
+    const headers = { 'xi-api-key': elKey(ctx) };
+    if (o.op === 'mine') {
+      const r = await fetch(`${EL}/voices`, { signal: ctx.signal, headers });
+      if (!r.ok) await failWith(r, 'ElevenLabs');
+      return ((await r.json()).voices || []).map(pickVoice);
+    }
+    if (o.op === 'search') {
+      const q = new URLSearchParams({ search: String(o.query || ''), page_size: '24', sort: 'cloned_by_count' });
+      const r = await fetch(`${EL}/shared-voices?${q}`, { signal: ctx.signal, headers });
+      if (!r.ok) await failWith(r, 'ElevenLabs');
+      return ((await r.json()).voices || []).map(pickVoice);
+    }
+    if (o.op === 'add') { // głos z biblioteki trzeba najpierw dodać do swojego konta
+      const r = await fetch(`${EL}/voices/add/${encodeURIComponent(o.owner)}/${encodeURIComponent(o.id)}`, {
+        method: 'POST', signal: ctx.signal, headers: { ...headers, 'content-type': 'application/json' },
+        body: JSON.stringify({ new_name: String(o.name || 'Hauntface voice').slice(0, 60) }),
+      });
+      if (!r.ok) await failWith(r, 'ElevenLabs');
+      return (await r.json()).voice_id || o.id;
+    }
+    throw new Error('bad op');
+  }
+
+  // o: { engine: 'openai'|'elevenlabs', text, voice, instructions, model } -> ArrayBuffer (mp3)
   async function speak(o, ctx) {
+    if (o.engine === 'elevenlabs') return elevenSpeak(o, ctx);
     const key = ctx.key('openai');
     if (!key) throw Object.assign(new Error('NO_KEY'), { code: 'NO_KEY' });
     const r = await fetch('https://api.openai.com/v1/audio/speech', {
@@ -121,7 +164,7 @@
     return await r.arrayBuffer();
   }
 
-  const api = { chat, transcribe, speak, isOpenAI };
+  const api = { chat, transcribe, speak, eleven, isOpenAI };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.HauntProviders = api;
 })(typeof window !== 'undefined' ? window : globalThis);

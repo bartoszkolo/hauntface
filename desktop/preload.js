@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld("hauntDesktop", {
   chat: o => call("hf:chat", o),
   transcribe: o => call("hf:stt", o),
   speak: o => call("hf:tts", o),
+  eleven: o => call("hf:el", o),
   setFullscreen: on => ipcRenderer.send("hf:fullscreen", !!on),
   toggleFullscreen: () => ipcRenderer.send("hf:fullscreen-toggle"),
   remote: {

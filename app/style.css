@@ -49,3 +49,12 @@
 #meter-thr { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; }
 #panel .actions { flex-wrap: wrap; } #panel .actions button { flex: 1 1 auto; }
 #panel .result { color: #ffd8b8; min-height: 1.4em; }
+#panel .el-current { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 13px; color: #ffd8b8; }
+#panel .el-current span { flex: 1; }
+#panel .el-current button, #panel .el-search button { margin: 0; flex: none; padding: 6px 10px; }
+#panel .el-search { margin-top: 8px; align-items: center; }
+#el-results { list-style: none; margin: 8px 0 0; padding: 0; max-height: 260px; overflow: auto; border: 1px solid #2c2430; border-radius: 6px; }
+#el-results li { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-bottom: 1px solid #1c161f; font-size: 13px; }
+#el-results li div { flex: 1; min-width: 0; } #el-results li small { display: block; color: #8a8090; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#el-results li button { margin: 0; padding: 4px 8px; flex: none; }
+#el-results li.msg { color: #8a8090; }

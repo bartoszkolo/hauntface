@@ -62,6 +62,10 @@ The first launch compiles the 3D shaders, which takes 10–20 s on weak integrat
 
 For an unattended prop, run it in kiosk mode so it wakes up by itself: `Hauntface --kiosk --autostart`.
 
+## Scary voices (ElevenLabs)
+
+For the creepiest voice, pick **Voice → ElevenLabs** under **Brain, ears and voice** and paste an [ElevenLabs](https://elevenlabs.io) key (there is a free tier). Click **Pick a voice**, search the community library in English (`demon`, `witch`, `monster`, `creepy old man`…), press ▶ to hear a sample and **Use** to give it to the current monster. The Reaper and the Witch each keep their own voice, and the demonic effect (pitch, distortion, growl, reverb) is layered on top; set its strength under **Advanced → Voice**.
+
 ## Hotkeys
 
 | Key | Effect | Key | Effect |
