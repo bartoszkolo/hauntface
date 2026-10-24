@@ -21,4 +21,9 @@ contextBridge.exposeInMainWorld("hauntDesktop", {
   speak: o => call("hf:tts", o),
   setFullscreen: on => ipcRenderer.send("hf:fullscreen", !!on),
   toggleFullscreen: () => ipcRenderer.send("hf:fullscreen-toggle"),
+  remote: {
+    set: (on, newToken) => call("hf:remote", !!on, !!newToken), // -> { url, qr } or null
+    status: st => ipcRenderer.send("hf:remote-status", st),
+    onCommand: fn => ipcRenderer.on("hf:remote-cmd", (_e, c) => fn(c)),
+  },
 });

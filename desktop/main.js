@@ -5,6 +5,7 @@ const { app, BrowserWindow, ipcMain, safeStorage, session, shell, Menu, powerSav
 const path = require("path");
 const fs = require("fs");
 const { pathToFileURL } = require("url");
+const { createRemote } = require("./remote");
 
 const isMac = process.platform === "darwin";
 const APP_DIR = app.isPackaged ? path.join(process.resourcesPath, "app") : path.join(__dirname, "..", "app");
@@ -69,6 +70,19 @@ ipcMain.handle("hf:tts", async (_e, o) => {
   catch (e) { throw clean(e); }
 });
 ipcMain.on("hf:fullscreen", (_e, on) => win && win.setFullScreen(!!on));
+
+// ---------------------------------------------------------------- phone remote
+let remote = null;
+const getRemote = () => remote || (remote = createRemote({
+  userData: app.getPath("userData"),
+  send: c => win && !win.isDestroyed() && win.webContents.send("hf:remote-cmd", c),
+}));
+ipcMain.handle("hf:remote", async (_e, on, newToken) => {
+  try { if (!on) { getRemote().stop(); return null; } return await getRemote().start({ newToken: !!newToken }); }
+  catch (e) { throw clean(e); }
+});
+ipcMain.on("hf:remote-status", (_e, st) => remote && remote.setStatus(st));
+app.on("before-quit", () => remote && remote.stop());
 ipcMain.on("hf:fullscreen-toggle", () => win && win.setFullScreen(!win.isFullScreen()));
 
 // ---------------------------------------------------------------- window

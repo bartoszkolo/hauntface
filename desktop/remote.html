@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0607">
+<title>Hauntface remote</title>
+<style>
+  :root { --bg: #0a0607; --card: #170e10; --line: #2c1d20; --text: #eadfce; --dim: #9a8b80; --ember: #ff4a12; --gold: #ffc23a; --blood: #8f0d12; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.4 system-ui, -apple-system, sans-serif; }
+  body { padding: 12px 14px calc(24px + env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto; }
+  header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  header h1 { font: 700 18px Georgia, serif; letter-spacing: 3px; color: var(--ember); margin: 0; flex: 1; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #555; flex: none; }
+  .dot.on { background: #3cdc6c; box-shadow: 0 0 8px #3cdc6c; }
+  .mode { font-size: 13px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--gold); margin: 0 0 8px; font-weight: 600; }
+  .log p { margin: 4px 0; font-size: 15px; } .log b { color: var(--dim); font-weight: 500; margin-right: 6px; }
+  .heard { color: #c7e0ff; } .said { color: #ffd8b8; }
+  textarea { width: 100%; min-height: 64px; resize: vertical; background: #000; color: var(--text); border: 1px solid var(--line);
+    border-radius: 8px; padding: 10px; font: inherit; }
+  button { font: inherit; border: 0; border-radius: 10px; padding: 12px 10px; background: #2a1a1d; color: var(--text); cursor: pointer; }
+  button:active { transform: scale(.97); }
+  .primary { background: var(--ember); color: #160400; font-weight: 700; }
+  .row { display: flex; gap: 8px; margin-top: 8px; } .row > * { flex: 1; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips button { padding: 8px 12px; border-radius: 999px; font-size: 14px; background: #24161a; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .grid button { padding: 14px 6px; font-size: 14px; min-height: 56px; }
+  .grid button.off { opacity: .35; pointer-events: none; }
+  .seg { display: flex; gap: 6px; } .seg button { flex: 1; padding: 10px 4px; font-size: 14px; }
+  .seg button.sel { background: var(--ember); color: #160400; font-weight: 700; }
+  .toggle { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; gap: 10px; }
+  .toggle + .toggle { border-top: 1px solid var(--line); }
+  .switch { width: 52px; height: 30px; border-radius: 15px; background: #333; position: relative; flex: none; padding: 0; }
+  .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #ccc; transition: left .15s; }
+  .switch.on { background: var(--ember); } .switch.on::after { left: 25px; background: #fff; }
+  .hush { width: 100%; background: var(--blood); color: #fff; font-weight: 800; letter-spacing: 3px; padding: 16px; font-size: 18px; }
+  .offline { text-align: center; color: var(--dim); padding: 30px 10px; }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<header><span class="dot" id="dot"></span><h1>HAUNTFACE</h1><span class="mode" id="mode">…</span></header>
+
+<section class="log" aria-live="polite">
+  <h2 data-t="live"></h2>
+  <p class="heard"><b data-t="heard"></b><span id="heard">—</span></p>
+  <p class="said"><b data-t="said"></b><span id="said">—</span></p>
+</section>
+
+<section>
+  <h2 data-t="say"></h2>
+  <textarea id="text" enterkeyhint="send"></textarea>
+  <div class="row"><button class="primary" id="send" data-t="send"></button></div>
+  <div class="chips" id="quick" style="margin-top:10px"></div>
+</section>
+
+<section><h2 data-t="scares"></h2><div class="grid" id="fx"></div></section>
+
+<section>
+  <h2 data-t="monster"></h2>
+  <div class="seg" id="look"></div>
+</section>
+
+<section>
+  <div class="toggle"><span data-t="mic"></span><button class="switch" id="sw-mic" aria-pressed="false"></button></div>
+  <div class="toggle"><span data-t="ai"></span><button class="switch" id="sw-ai" aria-pressed="false"></button></div>
+  <div class="toggle"><span data-t="family"></span><button class="switch" id="sw-family" aria-pressed="false"></button></div>
+</section>
+
+<button class="hush" id="hush" data-t="hush"></button>
+
+<script>
+const T = {
+  en: { live: 'Live', heard: 'Heard:', said: 'Said:', say: 'Make it say', send: 'Say it', scares: 'Scares', monster: 'Monster',
+    mic: 'Microphone (listening)', ai: 'AI answers by itself', family: 'Family mode', hush: 'HUSH',
+    looks: { reaper: 'Reaper', skull: 'Skull', witch: 'Witch' }, offline: 'Lost connection to the monster… reconnecting.',
+    modes: { sleep: 'asleep', idle: 'waiting', listening: 'listening', thinking: 'thinking', speaking: 'speaking' } },
+  pl: { live: 'Na żywo', heard: 'Słyszy:', said: 'Mówi:', say: 'Każ mu powiedzieć', send: 'Powiedz', scares: 'Straszaki', monster: 'Potwór',
+    mic: 'Mikrofon (słucha)', ai: 'AI odpowiada samo', family: 'Tryb rodzinny', hush: 'CISZA',
+    looks: { reaper: 'Kostucha', skull: 'Czaszka', witch: 'Baba Jaga' }, offline: 'Utracono połączenie z potworem… łączę ponownie.',
+    modes: { sleep: 'śpi', idle: 'czeka', listening: 'słucha', thinking: 'myśli', speaking: 'mówi' } },
+};
+const token = new URLSearchParams(location.search).get('t') || '';
+const $ = id => document.getElementById(id);
+let st = { lang: 'en' }, lastFxKey = '', lastQuickKey = '';
+const tr = () => T[st.lang] || T.en;
+
+async function cmd(c, arg) {
+  if (navigator.vibrate) navigator.vibrate(15);
+  try { await fetch('/cmd?t=' + encodeURIComponent(token), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ cmd: c, arg }) }); }
+  catch { $('dot').classList.remove('on'); }
+}
+function button(label, onClick, cls) { const b = document.createElement('button'); b.textContent = label; if (cls) b.className = cls; b.onclick = onClick; return b; }
+
+function render() {
+  const t = tr();
+  document.documentElement.lang = st.lang;
+  document.querySelectorAll('[data-t]').forEach(e => { e.textContent = t[e.dataset.t]; });
+  $('mode').textContent = t.modes[st.mode] || st.mode || '…';
+  $('heard').textContent = st.heard || '—';
+  $('said').textContent = st.said || '—';
+  for (const [id, v] of [['mic', st.mic], ['ai', st.ai], ['family', st.family]]) {
+    $('sw-' + id).classList.toggle('on', !!v); $('sw-' + id).setAttribute('aria-pressed', String(!!v));
+  }
+  const fxKey = JSON.stringify([st.lang, st.fx]);
+  if (fxKey !== lastFxKey) { // przebuduj przyciski tylko gdy lista się zmieni
+    lastFxKey = fxKey; const g = $('fx'); g.textContent = '';
+    for (const f of st.fx || []) g.appendChild(button(f.label, () => cmd('fx', f.id)));
+  }
+  const qKey = JSON.stringify(st.quick);
+  if (qKey !== lastQuickKey) {
+    lastQuickKey = qKey; const q = $('quick'); q.textContent = '';
+    for (const line of st.quick || []) q.appendChild(button(line, () => cmd('say', line)));
+  }
+  const l = $('look'); l.textContent = '';
+  for (const id of ['reaper', 'skull', 'witch']) l.appendChild(button(t.looks[id], () => cmd('look', id), st.look === id ? 'sel' : ''));
+}
+
+function sendText() { const v = $('text').value.trim(); if (!v) return; cmd('say', v); $('text').value = ''; }
+$('send').onclick = sendText;
+$('text').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendText(); } });
+$('sw-mic').onclick = () => cmd('mic', !st.mic);
+$('sw-ai').onclick = () => cmd('ai', !st.ai);
+$('sw-family').onclick = () => cmd('family', !st.family);
+$('hush').onclick = () => cmd('hush', true);
+
+function connect() {
+  const es = new EventSource('/events?t=' + encodeURIComponent(token));
+  es.onopen = () => $('dot').classList.add('on');
+  es.onmessage = e => { try { st = JSON.parse(e.data); render(); } catch {} };
+  es.onerror = () => { $('dot').classList.remove('on'); $('mode').textContent = tr().offline; }; // EventSource łączy się ponownie sam
+}
+render(); connect();
+</script>
+</body>
+</html>

@@ -21,21 +21,62 @@
     "productName": "Hauntface",
     "afterSign": "build/adhoc-sign.js",
     "artifactName": "Hauntface-${os}-${arch}.${ext}",
-    "directories": { "output": "dist", "buildResources": "build" },
-    "files": ["main.js", "preload.js", "package.json", "build/icon.png", "build/icon.ico"],
-    "extraResources": [{ "from": "../app", "to": "app", "filter": ["**/*"] }],
-    "win": { "target": ["nsis"], "icon": "build/icon.ico" },
-    "nsis": { "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true },
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "remote.js",
+      "remote.html",
+      "package.json",
+      "build/icon.png",
+      "build/icon.ico"
+    ],
+    "extraResources": [
+      {
+        "from": "../app",
+        "to": "app",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
     "mac": {
-      "target": ["dmg"], "category": "public.app-category.entertainment", "icon": "build/icon.png", "identity": null,
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.entertainment",
+      "icon": "build/icon.png",
+      "identity": null,
       "extendInfo": {
         "NSMicrophoneUsageDescription": "Hauntface listens to visitors so the monster can answer them. Audio is only sent to the speech service you configure.",
         "NSCameraUsageDescription": "Hauntface watches for movement so the monster can turn its head toward visitors. Frames are analysed on this computer and never stored or sent."
       }
     },
     "linux": {
-      "target": ["AppImage", "deb"], "category": "Game", "icon": "build/icon.png",
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Game",
+      "icon": "build/icon.png",
       "maintainer": "bartoszkolo <9589154+bartoszkolo@users.noreply.github.com>"
     }
+  },
+  "dependencies": {
+    "qrcode": "1.5.4"
   }
 }

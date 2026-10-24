@@ -38,3 +38,5 @@
 #toast.show { opacity: 1; }
 #demo-banner { position: fixed; right: 12px; bottom: 10px; z-index: 3; font: 12px system-ui; }
 #demo-banner a { color: #ff7a2a; background: #000a; padding: 6px 10px; border-radius: 4px; text-decoration: none; }
+#remote-img { display: block; margin: 10px 0 4px; background: #fff; border-radius: 8px; padding: 6px; image-rendering: pixelated; }
+#remote-url { word-break: break-all; user-select: all; }

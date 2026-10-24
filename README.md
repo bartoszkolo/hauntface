@@ -79,6 +79,10 @@ For an unattended prop, run it in kiosk mode so it wakes up by itself: `Hauntfac
 
 Type a line under "Speak manually" in the settings and the monster says it (puppeteer mode).
 
+## Phone remote
+
+Press **H → Phone remote → Turn on the remote** and scan the QR code with your phone (same Wi-Fi). Your phone becomes a remote: see what visitors said and what the monster answered, type lines for it to say, fire any scare, switch monsters, mute the microphone, or turn off "AI answers by itself" and do all the talking yourself. Nothing leaves your home network; every request needs the secret token from the QR code. The first time, Windows may ask about the firewall: allow private networks.
+
 ## Privacy
 
 - Camera frames are analysed locally and thrown away.
@@ -117,7 +121,7 @@ tools/      serve.py — run in a browser from source
 
 ## Roadmap
 
-- [ ] Phone remote: type lines and fire scares from your phone
+- [x] Phone remote: type lines and fire scares from your phone
 - [ ] ESP32 / Arduino bridge: real LED eyes, a jaw servo, a fog machine relay
 - [ ] Offline mode: Ollama + whisper.cpp + Piper
 - [ ] More monsters and community character packs

@@ -52,6 +52,19 @@
   <label data-i18n="puppet"></label>
   <input id="say" data-i18n-ph="puppetPh">
 
+  <h3 data-i18n="remote"></h3>
+  <div id="remote-box">
+    <label class="check"><input id="cfg-remote" type="checkbox"> <span data-i18n="remoteOn"></span></label>
+    <label class="check"><input id="cfg-aiOn" type="checkbox"> <span data-i18n="aiOn"></span></label>
+    <div id="remote-qr" hidden>
+      <img id="remote-img" alt="QR" width="200" height="200">
+      <p class="note" id="remote-url"></p>
+      <p class="note" data-i18n="remoteNote"></p>
+      <button class="ghost" id="remote-new" data-i18n="remoteNew"></button>
+    </div>
+  </div>
+  <p class="note" id="remote-browser" data-i18n="remoteBrowser" hidden></p>
+
   <h3 data-i18n="keys"></h3>
   <p class="note" id="keys-note"></p>
   <label data-i18n="keyNvidia"></label><input id="key-nvidia" type="password" autocomplete="off">

@@ -12,6 +12,7 @@ const DEFAULTS = {
   llm: 'nvidia', nvidiaModel: 'nvidia/nemotron-3.5-lightning-30b-a3b', model: 'claude-opus-5-5',
   persona: '', personaWitch: '', // puste = domyślna osobowość dla wybranego języka
   tts: 'openai', voice: 'onyx', voiceWitch: 'shimmer', pitch: 0.85,
+  remote: false, aiOn: true,
 };
 // dozwolone wartości pól wyboru — chroni przed zepsutymi/starymi ustawieniami
 const CHOICES = {
@@ -888,6 +889,8 @@ function reportError(e) {
   if (e.code === 'NO_KEY') toast(tx().ui.noBrain);
 }
 async function respond(userText) {
+  S.heard = userText;
+  if (!cfg.aiOn) { S.lastText = '👂 ' + userText; setMode('idle'); return; } // mówi tylko lalkarz z telefonu
   newVisitorCheck();
   const myTurn = ++turnId;
   S.lastText = '👂 ' + userText; setMode('thinking');
@@ -953,7 +956,7 @@ function speak(text, opts = {}) {
   const gen = fillerGen;
   const job = speechChain.then(async () => {
     if (opts.filler && gen !== fillerGen) return; // zapychacz już niepotrzebny
-    speaking = { filler: !!opts.filler }; activity();
+    speaking = { filler: !!opts.filler }; activity(); S.said = text;
     const prev = S.mode; setMode('speaking');
     if (rec) try { rec.abort(); } catch {}
     try {
@@ -1011,7 +1014,7 @@ async function speakOpenAI(text) {
 //  INTERFEJS
 // =====================================================================
 const FIELDS = ['lang', 'look', 'theme', 'quality', 'ambient', 'candle', 'volume', 'family', 'ambientSound', 'servo', 'auto', 'doze', 'camera', 'camInvert',
-  'bell', 'riddles', 'llm', 'nvidiaModel', 'model', 'persona', 'personaWitch', 'stt', 'whisperUrl', 'whisperModel', 'threshold', 'tts', 'voice', 'voiceWitch', 'pitch'];
+  'bell', 'riddles', 'remote', 'aiOn', 'llm', 'nvidiaModel', 'model', 'persona', 'personaWitch', 'stt', 'whisperUrl', 'whisperModel', 'threshold', 'tts', 'voice', 'voiceWitch', 'pitch'];
 const el = k => document.getElementById('cfg-' + k);
 function applyI18n() {
   const ui = tx().ui;
@@ -1037,7 +1040,7 @@ function loadForm() {
   }
 }
 async function readForm() {
-  const was = { camera: cfg.camera, quality: cfg.quality, lang: cfg.lang, look: cfg.look, family: cfg.family };
+  const was = { remote: cfg.remote, camera: cfg.camera, quality: cfg.quality, lang: cfg.lang, look: cfg.look, family: cfg.family };
   for (const k of FIELDS) {
     const e = el(k);
     cfg[k] = e.type === 'checkbox' ? e.checked : (e.type === 'number' || e.type === 'range') ? +e.value : e.value;
@@ -1055,6 +1058,7 @@ async function readForm() {
   if (cfg.lang !== was.lang || cfg.family !== was.family) { applyI18n(); loadForm(); }
   if (cfg.camera !== was.camera && S.mode !== 'sleep') cfg.camera ? startCamera() : stopCamera();
   if (cfg.stt === 'webspeech' && !rec && S.mode !== 'sleep') startWebSpeech();
+  if (cfg.remote !== was.remote) setRemote(cfg.remote);
 }
 let toastTimer;
 function toast(msg) {
@@ -1093,6 +1097,44 @@ document.addEventListener('keydown', e => {
   else if (k === ' ') { S.micOn = !S.micOn; e.preventDefault(); toast(S.micOn ? tx().ui.micOn : tx().ui.micOff); }
 });
 
+// =====================================================================
+//  PILOT W TELEFONIE (serwer działa w procesie głównym — desktop/remote.js)
+// =====================================================================
+async function setRemote(on, newToken) {
+  const box = document.getElementById('remote-qr');
+  if (!DESKTOP) return;
+  try {
+    const r = await DESKTOP.remote.set(on, newToken);
+    box.hidden = !r;
+    if (r) { document.getElementById('remote-img').src = r.qr; document.getElementById('remote-url').textContent = r.url; }
+  } catch (e) { box.hidden = true; reportError(e); }
+}
+function remoteStatus() {
+  return {
+    lang: cfg.lang, mode: S.dozing ? 'sleep' : S.mode, look: cfg.look, mic: S.micOn, ai: cfg.aiOn, family: cfg.family,
+    heard: S.heard || '', said: S.said || '',
+    fx: Object.values(FX_KEYS).filter(id => !(cfg.family && FAMILY_BLOCKED.has(id))).map(id => ({ id, label: tx().fx[id] })),
+    quick: [...lines().greet.slice(0, 3), ...lines().laugh.slice(0, 2)],
+  };
+}
+function handleRemote({ cmd, arg }) {
+  document.getElementById('start')?.click(); // komenda z telefonu budzi potwora
+  switch (cmd) {
+    case 'say': if (arg) { S.lastText = '📱 ' + arg; speak(String(arg)); } break;
+    case 'fx': if (Object.values(FX_KEYS).includes(arg)) fx(arg); break;
+    case 'look': if (CHOICES.look.includes(arg)) { cfg.look = arg; history.length = 0; loadForm(); saveCfg(); } break;
+    case 'mic': S.micOn = !!arg; toast(S.micOn ? tx().ui.micOn : tx().ui.micOff); break;
+    case 'hush': hush(); break;
+    case 'ai': cfg.aiOn = !!arg; loadForm(); saveCfg(); break;
+    case 'family': cfg.family = !!arg; applyI18n(); loadForm(); saveCfg(); break;
+  }
+}
+if (DESKTOP) {
+  DESKTOP.remote.onCommand(handleRemote);
+  setInterval(() => { if (cfg.remote) DESKTOP.remote.status(remoteStatus()); }, 400); // serwer wysyła tylko zmiany
+  document.getElementById('remote-new').onclick = () => setRemote(true, true);
+}
+
 // utrata kontekstu WebGL (reset sterownika, uśpienie) — odtwórz shadery zamiast czarnego ekranu do rana
 GLC.addEventListener('webglcontextlost', e => { e.preventDefault(); prog = null; });
 GLC.addEventListener('webglcontextrestored', () => { PROGS = {}; VS = null; try { initGL(); } catch (err) { S.lastText = '⚠ Shader: ' + err.message; } });
@@ -1117,6 +1159,8 @@ document.getElementById('start').onclick = async () => {
   for (const [n, v] of Object.entries(legacyKeys)) await Keys.set(n, v); // przeniesienie kluczy z prototypu
   if (Object.keys(legacyKeys).length) await Keys.refresh();
   applyI18n();
+  document.getElementById('remote-box').hidden = !DESKTOP; document.getElementById('remote-browser').hidden = !!DESKTOP;
+  if (DESKTOP && cfg.remote) setRemote(true);
   if (!gl) { S.lastText = '⚠ ' + tx().ui.noWebgl; document.body.classList.remove('nodebug'); }
   else try { initGL(); } catch (e) { console.error(e); document.body.classList.remove('nodebug'); S.lastText = '⚠ Shader: ' + e.message; }
   resize();
